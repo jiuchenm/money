@@ -1,0 +1,33 @@
+/**
+ * 浪潮投资知识库主题——金色暗色调，延续 HTML 报告的视觉语言。
+ */
+
+:root {
+  --ifm-color-primary: #b8891f;
+  --ifm-color-primary-dark: #a67b1c;
+  --ifm-color-primary-darker: #9c741a;
+  --ifm-color-primary-darkest: #815f16;
+  --ifm-color-primary-light: #ca9722;
+  --ifm-color-primary-lighter: #d4a63c;
+  --ifm-color-primary-lightest: #dcb45c;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #d4a63c;
+  --ifm-color-primary-dark: #c9982a;
+  --ifm-color-primary-darker: #be8f28;
+  --ifm-color-primary-darkest: #9c7620;
+  --ifm-color-primary-light: #dab254;
+  --ifm-color-primary-lighter: #dfba64;
+  --ifm-color-primary-lightest: #e8cd8c;
+  --ifm-background-color: #0f1115;
+  --ifm-background-surface-color: #161a22;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+/* 表格更紧凑清晰 */
+table {
+  font-size: 0.9rem;
+}

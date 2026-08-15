@@ -1,0 +1,9 @@
+{
+  "label": "📍 Track",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "slug": "/track",
+    "description": "持续跟踪宏观资产与具体标的。记录当前判断、关键变量、估值路径和证伪条件。"
+  }
+}

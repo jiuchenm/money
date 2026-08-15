@@ -1,0 +1,19 @@
+# WebIQ API key —— 绝不提交
+webiq/key
+
+# Docusaurus
+docs-site/node_modules/
+docs-site/build/
+docs-site/.docusaurus/
+docs-site/.cache-loader/
+
+# 依赖与日志
+node_modules/
+*.log
+npm-debug.log*
+
+# 系统文件
+.DS_Store
+
+# memsearch 缓存
+.memsearch/
