@@ -35,6 +35,22 @@ export type AgentNote = {
   confidence: string | {level: string; reason: string};
 };
 
+export type WorldEvent = {
+  title: string;
+  url?: string;
+  domain?: string;
+  published_at?: string;
+  language?: string;
+  source: string;
+  source_tier?: 'primary' | 'recognized_media';
+  evidence_status?: string;
+  chinese_summary?: string;
+  hk_a_impact?: string;
+  affected_assets?: string[];
+  mechanism?: string;
+  priced_in?: string;
+};
+
 export type NikkiSnapshot = {
   schema_version: number;
   report_date: string;
@@ -43,7 +59,8 @@ export type NikkiSnapshot = {
   market_phase_note: string;
   groups: Record<string, MarketGroup>;
   macro: Array<{series: string; label: string; market_date: string; value: number; change: number; source: string}>;
-  world_events: Array<{title: string; url?: string; domain?: string; published_at?: string; source: string}>;
+  world_events: WorldEvent[];
+  world_events_status?: 'collected' | 'insufficient_evidence';
   signals: Array<{level: 'calm' | 'watch' | 'risk'; label: string; detail: string}>;
   agent_notes: Record<string, AgentNote>;
   data_quality: {status: string; failures: Array<{source: string; error: string}>; disclaimer: string};

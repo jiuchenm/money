@@ -92,16 +92,24 @@
 .secondaryAnalysis .decisionGrid { margin-top: 14px; }
 .bottomGrid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; margin-top: 24px; }
 .eventList, .macroList, .empty { margin: 0; border: 1px solid var(--line); background: var(--surface); }
-.eventList { list-style: none; padding: 0; }
-.eventList li { padding: 11px 13px; border-bottom: 1px solid var(--line); font-size: .8rem; line-height: 1.45; }
-.eventList li:last-child, .macroList > div:last-child { border-bottom: 0; }
-.eventList a { color: #9be8d0; }
-.eventList span, .macroList small { display: block; color: var(--muted); font-size: .68rem; }
+.eventCard, .macroCard { padding: 14px; border-bottom: 1px solid var(--line); }
+.eventCard:last-child, .macroCard:last-child { border-bottom: 0; }
+.eventHead, .macroHead { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.eventHead span, .eventHead time { color: var(--muted); font-size: .68rem; }
+.eventCard h3, .macroCard h3 { margin: 7px 0; color: var(--ink); font-size: .9rem; line-height: 1.5; letter-spacing: 0; }
+.eventCard p, .macroCard p, .macroCard strong { color: var(--text); font-size: .76rem; line-height: 1.55; }
+.eventCard details, .macroCard details { color: var(--muted); font-size: .7rem; }
+.eventCard summary, .macroCard summary { cursor: pointer; color: #a5ecd5; }
+.eventCard a { color: #9be8d0; }
+.affected { color: var(--muted) !important; }
 .empty { min-height: 90px; padding: 16px; color: var(--text); }
 .advancedData { align-self: start; }
 .advancedData > p { color: var(--text); font-size: .78rem; line-height: 1.55; }
-.macroList > div { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; padding: 11px 12px; border-bottom: 1px solid var(--line); font-size: .76rem; }
-.macroList strong { color: var(--ink); font-family: var(--ifm-font-family-monospace); }
+.macroHead span { flex: 0 0 auto; padding: 4px 7px; font-size: .68rem; font-weight: 700; }
+.macroCard > strong { display: block; margin: 8px 0; color: var(--ink); }
+.support { color: #ffd2d4; background: #4a232a; }
+.pressure { color: #baf3df; background: #153c35; }
+.neutral { color: #ffe2a6; background: #49391e; }
 .dataFooter { margin-top: 26px; padding: 15px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: .76rem; }
 .dataFooter strong { color: var(--text); }
 .dataFooter p { margin: 5px 0; }

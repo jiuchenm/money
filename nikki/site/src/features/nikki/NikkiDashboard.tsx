@@ -1,4 +1,4 @@
-import type {AgentNote, MarketAsset, NikkiSnapshot} from './types';
+import type {AgentNote, MarketAsset, NikkiSnapshot, WorldEvent} from './types';
 import Sparkline from './Sparkline';
 import styles from './nikki.module.css';
 
@@ -23,14 +23,42 @@ const externalAssets = [
 const noteNames: Record<string, string> = {china_markets: '港A市场', cross_asset: '跨市场传导', us_macro: '美股环境', metals_energy: '商品环境'};
 
 function friendlyText(text: string) {
-  return text
-    .replaceAll('RSP', '标普500等权指数')
-    .replaceAll('IWM', '美股小盘股')
-    .replaceAll('SPY', '标普500')
-    .replaceAll('NDX', '纳斯达克100')
-    .replaceAll('VIX', '美股恐慌指数')
-    .replaceAll('HY OAS', '美国高收益债信用利差')
-    .replaceAll('market_date 和 fetched_at', '对应交易日和更新时间');
+  const terms: Array<[string, string]> = [
+    ['market_date 和 fetched_at', '对应交易日和更新时间'],
+    ['HY OAS', '美国高收益债信用利差'], ['SOXX', '美股半导体指数基金'],
+    ['RSP', '标普500等权指数'], ['IWM', '美股小盘股指数基金'],
+    ['SPY', '标普500指数基金'], ['NDX', '纳斯达克100'], ['XLK', '美股科技板块'],
+    ['VIX', '美股恐慌指数'], ['HYG', '美国高收益债基金'], ['TLT', '美国长期国债基金'],
+    ['XLP', '美股必需消费板块'], ['XLU', '美股公用事业板块'], ['XLE', '美股能源板块'],
+    ['GLD', '黄金基金'], ['10Y', '美国10年期国债收益率'], ['risk-off', '避险模式'],
+  ];
+  return terms.reduce((result, [term, replacement]) => result.replaceAll(term, replacement), text);
+}
+
+type MacroItem = NikkiSnapshot['macro'][number];
+type MacroView = {name: string; measure: string; reading: string; impact: string; tone: 'support' | 'neutral' | 'pressure'};
+
+function macroView(item: MacroItem): MacroView {
+  const move = `${item.change > 0 ? '上升' : item.change < 0 ? '下降' : '持平'} ${Math.abs(item.change).toFixed(2)} 个百分点`;
+  switch (item.series) {
+    case 'BAMLH0A0HYM2':
+      return {name: '美国高收益债信用利差', measure: '衡量低评级企业融资压力。利差急升常代表避险和信用风险扩散。', reading: `当前 ${item.value.toFixed(2)}%，较前值${move}。绝对水平仍低，系统性信用压力有限。`, impact: item.change > 0 ? '轻微压制港股风险偏好，但暂未构成信用危机信号。' : '信用压力没有恶化，对港A风险偏好偏中性。', tone: item.change > 0 ? 'pressure' : 'neutral'};
+    case 'DFF':
+      return {name: '美国有效联邦基金利率', measure: '反映美元政策利率环境，也是全球资金成本的重要基准。', reading: `当前 ${item.value.toFixed(2)}%，较前值${move}。日度不变不是新的政策信号。`, impact: '高利率环境仍压制港股成长股估值，但单日持平对A股没有新增方向。', tone: 'neutral'};
+    case 'DFII10':
+      return {name: '美国10年期实际利率', measure: '剔除通胀预期后的长期实际折现率，影响黄金和成长股估值。', reading: `当前 ${item.value.toFixed(2)}%，较前值${move}。`, impact: item.change > 0 ? '实际利率上升，提高估值折现压力，通常不利于恒生科技和A股高估值成长。' : '实际利率回落，边际有利于港股科技和A股成长估值。', tone: item.change > 0 ? 'pressure' : item.change < 0 ? 'support' : 'neutral'};
+    case 'T10Y2Y':
+      return {name: '美国10年与2年国债利差', measure: '观察收益率曲线斜率。负值倒挂常对应经济衰退担忧，转正不等于经济必然走强。', reading: `当前 ${item.value.toFixed(2)}%，较前值${move}。曲线仍为正。`, impact: '单日小幅变窄证据较弱，对港A暂按中性处理。', tone: 'neutral'};
+    default:
+      return {name: item.label, measure: '用于观察海外流动性、增长或信用环境。', reading: `当前 ${item.value}，较前值${move}。`, impact: '暂未建立可靠的港A传导规则，只作为观察项。', tone: 'neutral'};
+  }
+}
+
+function isTimelyProcessedEvent(event: WorldEvent, reportDate: string) {
+  if (!event.chinese_summary || !event.hk_a_impact || !event.published_at) return false;
+  const published = new Date(event.published_at).getTime();
+  const reportEnd = new Date(`${reportDate}T23:59:59+08:00`).getTime();
+  return Number.isFinite(published) && published <= reportEnd && published >= reportEnd - 72 * 60 * 60 * 1000;
 }
 
 function formatValue(value: number) {
@@ -90,10 +118,30 @@ function ExternalCard({asset, name, impact}: {asset: MarketAsset; name: string; 
   </article>;
 }
 
+function MacroCard({item}: {item: MacroItem}) {
+  const view = macroView(item);
+  return <article className={styles.macroCard}>
+    <div className={styles.macroHead}><h3>{view.name}</h3><span className={styles[view.tone]}>{view.tone === 'support' ? '边际支持港A' : view.tone === 'pressure' ? '边际压制港A' : '对港A中性'}</span></div>
+    <p>{view.measure}</p><strong>{view.reading}</strong><p>{view.impact}</p>
+    <details><summary>查看数据口径与来源</summary><p>{item.series} · 数据日 {item.market_date} · {item.source}。FRED 日度数据可能滞后，不代表实时盘中变化。</p></details>
+  </article>;
+}
+
+function EventCard({event}: {event: WorldEvent}) {
+  const published = new Date(event.published_at || '').toLocaleString('zh-CN', {timeZone: 'Asia/Shanghai', hour12: false});
+  return <article className={styles.eventCard}>
+    <div className={styles.eventHead}><span>{event.source_tier === 'primary' ? '一手来源' : '可靠媒体线索'}</span><time>{published}</time></div>
+    <h3>{event.chinese_summary}</h3><p><strong>对港A：</strong>{event.hk_a_impact}</p>
+    {event.affected_assets?.length ? <p className={styles.affected}>主要影响：{event.affected_assets.join('、')}</p> : null}
+    <details><summary>查看原文与证据状态</summary><p>{event.title} · {event.domain || event.source}</p>{event.url && <a href={event.url} target="_blank" rel="noreferrer">打开原始来源</a>}</details>
+  </article>;
+}
+
 export default function NikkiDashboard({snapshot, archived = false}: {snapshot: NikkiSnapshot; archived?: boolean}) {
   const fetched = new Date(snapshot.fetched_at).toLocaleString('zh-CN', {timeZone: 'Asia/Shanghai', hour12: false});
   const primaryNotes = ['china_markets', 'cross_asset'].flatMap((key) => snapshot.agent_notes?.[key] ? [[key, snapshot.agent_notes[key]] as const] : []);
   const secondaryNotes = Object.entries(snapshot.agent_notes || {}).filter(([key]) => !['china_markets', 'cross_asset'].includes(key));
+  const processedEvents = snapshot.world_events.filter((event) => isTimelyProcessedEvent(event, snapshot.report_date));
   return <main className={styles.page}>
     <header className={styles.header}>
       <div><p className={styles.eyebrow}>NIKKI · 港A市场雷达</p><h1>{archived ? snapshot.report_date + ' 市场档案' : '港股与A股今日总览'}</h1><p className={styles.subhead}>更新时间 {fetched} · {snapshot.data_quality.status === 'ok' ? '主要数据源正常' : '部分来源降级'}</p></div>
@@ -130,12 +178,12 @@ export default function NikkiDashboard({snapshot, archived = false}: {snapshot: 
 
     <section className={styles.bottomGrid} id="events">
       <div className={styles.plainSection}>
-        <div className={styles.sectionTitle}><h2>世界事件</h2><span>点击查看来源</span></div>
-        {snapshot.world_events.length ? <ul className={styles.eventList}>{snapshot.world_events.slice(0, 8).map((event) => <li key={event.title + '-' + event.published_at}><a href={event.url} target="_blank" rel="noreferrer">{event.title}</a><span>{event.domain}</span></li>)}</ul> : <p className={styles.empty}>本次事件源被限流，行情数据仍有效。</p>}
+        <div className={styles.sectionTitle}><h2>世界事件如何影响港A</h2><span>只展示72小时内可靠证据</span></div>
+        {processedEvents.length ? <div className={styles.eventList}>{processedEvents.map((event) => <EventCard key={event.title + '-' + event.published_at} event={event} />)}</div> : <p className={styles.empty}>今日没有足够可靠的事件证据，不能用旧闻解释当日行情。</p>}
       </div>
-      <details className={styles.advancedData}><summary>查看进阶宏观数据</summary><p>这组数据适合判断美元流动性和信用压力，不作为港A单独买卖依据。</p>
-        <div className={styles.macroList}>{snapshot.macro.map((item) => <div key={item.series}><span>{item.label}<small>{item.market_date}</small></span><strong>{formatValue(item.value)}</strong><span>{item.change > 0 ? '+' : ''}{item.change.toFixed(2)}</span></div>)}</div>
-      </details>
+      <div className={styles.advancedData}><div className={styles.sectionTitle}><h2>海外宏观数据怎么读</h2><span>已换算为港A传导</span></div><p>这组数据用于判断美元流动性、估值和信用压力，不能单独作为买卖信号。</p>
+        <div className={styles.macroList}>{snapshot.macro.map((item) => <MacroCard key={item.series} item={item} />)}</div>
+      </div>
     </section>
     <footer className={styles.dataFooter}><strong>证据边界</strong><p>{snapshot.data_quality.disclaimer}</p></footer>
   </main>;

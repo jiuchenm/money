@@ -12,13 +12,41 @@ PUBLIC_DATA = ROOT / "site" / "public" / "data"
 SOURCE_DATA = ROOT / "site" / "src" / "data"
 
 
+def merge_event_analysis(snapshot: dict[str, Any], analysis: dict[str, Any]) -> None:
+    event_analysis = analysis.pop("world_events", None)
+    if isinstance(event_analysis, dict):
+        interpreted = event_analysis.get("events", [])
+    elif isinstance(event_analysis, list):
+        interpreted = event_analysis
+    else:
+        interpreted = []
+    if not isinstance(interpreted, list):
+        return
+
+    by_url = {item.get("url"): item for item in interpreted if isinstance(item, dict) and item.get("url")}
+    by_title = {
+        item.get("original_title") or item.get("title"): item
+        for item in interpreted
+        if isinstance(item, dict) and (item.get("original_title") or item.get("title"))
+    }
+    for event in snapshot.get("world_events", []):
+        interpretation = by_url.get(event.get("url")) or by_title.get(event.get("title"))
+        if not interpretation:
+            continue
+        for key in ("chinese_summary", "hk_a_impact", "affected_assets", "mechanism", "priced_in"):
+            if interpretation.get(key) is not None:
+                event[key] = interpretation[key]
+
+
 def load_snapshots() -> list[dict[str, Any]]:
     snapshots = []
     for path in sorted(DAILY.glob("*.json")):
         snapshot = json.loads(path.read_text(encoding="utf-8"))
         analysis_path = ANALYSIS / f"{snapshot['report_date']}.json"
         if analysis_path.exists():
-            snapshot["agent_notes"] = json.loads(analysis_path.read_text(encoding="utf-8"))
+            analysis = json.loads(analysis_path.read_text(encoding="utf-8"))
+            merge_event_analysis(snapshot, analysis)
+            snapshot["agent_notes"] = analysis
         snapshots.append(snapshot)
     if not snapshots:
         raise SystemExit("No Nikki daily snapshots found")

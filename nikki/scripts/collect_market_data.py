@@ -3,8 +3,10 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import datetime as dt
+import email.utils
 import json
 import math
+import re
 import statistics
 import urllib.parse
 import urllib.request
@@ -168,14 +170,122 @@ def fetch_fred(series_id: str, label: str) -> dict[str, Any]:
     }
 
 
-def fetch_world_events() -> tuple[list[dict[str, Any]], str | None]:
-    query = urllib.parse.quote('(central bank OR tariff OR sanctions OR war OR oil OR inflation) sourcecountry:US')
-    url = f"https://api.gdeltproject.org/api/v2/doc/doc?query={query}&mode=artlist&maxrecords=12&format=json&sort=hybridrel"
+RECOGNIZED_NEWS_DOMAINS = {
+    "apnews.com",
+    "bbc.com",
+    "bloomberg.com",
+    "cnbc.com",
+    "ft.com",
+    "nikkei.com",
+    "reuters.com",
+    "scmp.com",
+    "wsj.com",
+}
+PRIMARY_SOURCE_DOMAINS = {
+    "bis.org",
+    "ecb.europa.eu",
+    "federalreserve.gov",
+    "iea.org",
+    "imf.org",
+    "mofcom.gov.cn",
+    "opec.org",
+    "pbc.gov.cn",
+    "stats.gov.cn",
+    "un.org",
+    "worldbank.org",
+}
+BLOCKED_NEWS_DOMAINS = {"naturalnews.com", "zerohedge.com"}
+
+
+def parse_event_time(raw: str | None) -> dt.datetime | None:
+    if not raw:
+        return None
+    for parser in (
+        lambda value: dt.datetime.strptime(value, "%Y%m%dT%H%M%SZ").replace(tzinfo=dt.timezone.utc),
+        email.utils.parsedate_to_datetime,
+        lambda value: dt.datetime.fromisoformat(value.replace("Z", "+00:00")),
+    ):
+        try:
+            parsed = parser(raw)
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=dt.timezone.utc)
+            return parsed.astimezone(dt.timezone.utc)
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
+def normalized_domain(raw: str | None, url: str | None = None) -> str:
+    domain = (raw or "").strip().lower()
+    if "." not in domain and url:
+        domain = urllib.parse.urlparse(url).netloc.lower()
+    return domain.removeprefix("www.")
+
+
+def source_tier(domain: str) -> str | None:
+    if any(domain == item or domain.endswith(f".{item}") for item in BLOCKED_NEWS_DOMAINS):
+        return None
+    if domain.endswith(".gov") or any(domain == item or domain.endswith(f".{item}") for item in PRIMARY_SOURCE_DOMAINS):
+        return "primary"
+    if any(domain == item or domain.endswith(f".{item}") for item in RECOGNIZED_NEWS_DOMAINS):
+        return "recognized_media"
+    return None
+
+
+def normalize_event_title(title: str) -> str:
+    words = re.findall(r"[a-z0-9]+", title.lower())
+    noise = {"a", "an", "and", "for", "in", "of", "on", "the", "to", "with"}
+    return " ".join(word for word in words if word not in noise)[:180]
+
+
+def event_title_is_duplicate(key: str, seen: list[set[str]]) -> bool:
+    tokens = set(key.split())
+    if not tokens:
+        return True
+    return any(len(tokens & prior) / len(tokens | prior) >= 0.72 for prior in seen)
+
+
+def filter_world_events(events: list[dict[str, Any]], as_of: dt.date) -> list[dict[str, Any]]:
+    report_end = dt.datetime.combine(as_of, dt.time(23, 59, 59), tzinfo=dt.timezone(dt.timedelta(hours=8))).astimezone(dt.timezone.utc)
+    cutoff = report_end - dt.timedelta(hours=72)
+    accepted: list[dict[str, Any]] = []
+    seen: list[set[str]] = []
+    for event in events:
+        published = parse_event_time(event.get("published_at"))
+        domain = normalized_domain(event.get("domain"), event.get("url"))
+        tier = source_tier(domain)
+        title = str(event.get("title") or "").strip()
+        language = str(event.get("language") or "English").lower()
+        key = normalize_event_title(title)
+        if not published or not (cutoff <= published <= report_end) or not tier or not key:
+            continue
+        if language not in {"english", "en"} or event_title_is_duplicate(key, seen):
+            continue
+        seen.append(set(key.split()))
+        accepted.append({
+            **event,
+            "domain": domain,
+            "published_at": published.isoformat().replace("+00:00", "Z"),
+            "source_tier": tier,
+            "evidence_status": "verified_source" if tier == "primary" else "headline_lead",
+        })
+    return sorted(accepted, key=lambda item: item["published_at"], reverse=True)[:8]
+
+
+def fetch_world_events(as_of: dt.date) -> tuple[list[dict[str, Any]], str | None]:
+    start = (as_of - dt.timedelta(days=3)).strftime("%Y%m%d000000")
+    end = (as_of + dt.timedelta(days=1)).strftime("%Y%m%d000000")
+    query = urllib.parse.quote('(central bank OR tariff OR sanctions OR war OR oil OR inflation OR treasury OR China)')
+    url = (
+        f"https://api.gdeltproject.org/api/v2/doc/doc?query={query}&mode=artlist"
+        f"&maxrecords=50&format=json&sort=datedesc&startdatetime={start}&enddatetime={end}"
+    )
+    gdelt_error: Exception | None = None
     try:
         payload = fetch_json(url, timeout=30)
-        events = []
+        candidates = []
         for article in payload.get("articles", []):
-            events.append({
+            candidates.append({
                 "title": article.get("title", "Untitled"),
                 "url": article.get("url"),
                 "domain": article.get("domain"),
@@ -183,28 +293,37 @@ def fetch_world_events() -> tuple[list[dict[str, Any]], str | None]:
                 "language": article.get("language"),
                 "source": "GDELT 2.1 DOC API",
             })
-        return events[:8], None
+        events = filter_world_events(candidates, as_of)
+        if events:
+            return events, None
     except Exception as gdelt_exc:
+        gdelt_error = gdelt_exc
+
+    try:
         rss_query = urllib.parse.quote('markets central bank oil gold tariffs geopolitics when:1d')
         rss_url = f"https://news.google.com/rss/search?q={rss_query}&hl=en-US&gl=US&ceid=US:en"
-        try:
-            request = urllib.request.Request(rss_url, headers={"User-Agent": USER_AGENT})
-            with urllib.request.urlopen(request, timeout=30) as response:
-                root = ET.fromstring(response.read())
-            events = []
-            for item in root.findall("./channel/item")[:8]:
-                source_node = item.find("source")
-                events.append({
-                    "title": item.findtext("title", "Untitled"),
-                    "url": item.findtext("link"),
-                    "domain": source_node.text if source_node is not None else "Google News",
-                    "published_at": item.findtext("pubDate"),
-                    "language": "English",
-                    "source": "Google News RSS fallback; headline lead only",
-                })
-            return events, f"GDELT unavailable: {gdelt_exc}; used RSS fallback"
-        except Exception as rss_exc:  # Keep market data usable if both news sources fail.
-            return [], f"GDELT: {gdelt_exc}; RSS: {rss_exc}"
+        request = urllib.request.Request(rss_url, headers={"User-Agent": USER_AGENT})
+        with urllib.request.urlopen(request, timeout=30) as response:
+            root = ET.fromstring(response.read())
+        candidates = []
+        for item in root.findall("./channel/item")[:30]:
+            source_node = item.find("source")
+            source_url = source_node.get("url") if source_node is not None else None
+            candidates.append({
+                "title": item.findtext("title", "Untitled"),
+                "url": item.findtext("link"),
+                "domain": normalized_domain(None, source_url),
+                "published_at": item.findtext("pubDate"),
+                "language": "English",
+                "source": "Google News RSS discovery lead",
+            })
+        events = filter_world_events(candidates, as_of)
+        warning = f"GDELT unavailable: {gdelt_error}; used RSS fallback" if gdelt_error else None
+        return events, warning
+    except Exception as rss_exc:  # Keep market data usable if both news sources fail.
+        if gdelt_error:
+            return [], f"GDELT: {gdelt_error}; RSS: {rss_exc}"
+        return [], f"RSS fallback unavailable: {rss_exc}"
 
 
 def derive_signals(groups: dict[str, Any], fred: list[dict[str, Any]]) -> list[dict[str, str]]:
@@ -270,7 +389,7 @@ def collect(as_of: dt.date) -> dict[str, Any]:
             except Exception as exc:
                 failures.append({"source": f"FRED:{series}", "error": str(exc)})
 
-    events, event_error = fetch_world_events()
+    events, event_error = fetch_world_events(as_of)
     if event_error:
         failures.append({"source": "world-events", "error": event_error})
 
@@ -283,6 +402,7 @@ def collect(as_of: dt.date) -> dict[str, Any]:
         "groups": groups,
         "macro": sorted(fred, key=lambda item: item["series"]),
         "world_events": events,
+        "world_events_status": "collected" if events else "insufficient_evidence",
         "signals": derive_signals(groups, fred),
         "agent_notes": {},
         "data_quality": {
