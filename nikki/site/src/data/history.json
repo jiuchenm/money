@@ -1,57 +1,9 @@
 {
   "generated_from": 1,
   "series": {
-    "^NDX": {
-      "symbol": "^NDX",
-      "name": "Nasdaq 100",
-      "points": [
-        {
-          "report_date": "2026-08-19",
-          "market_date": "2026-08-19",
-          "value": 29359.4375,
-          "change_1d": -0.45
-        }
-      ]
-    },
-    "^VIX": {
-      "symbol": "^VIX",
-      "name": "VIX",
-      "points": [
-        {
-          "report_date": "2026-08-19",
-          "market_date": "2026-08-19",
-          "value": 15.27,
-          "change_1d": -3.6
-        }
-      ]
-    },
-    "GC=F": {
-      "symbol": "GC=F",
-      "name": "Gold",
-      "points": [
-        {
-          "report_date": "2026-08-19",
-          "market_date": "2026-08-19",
-          "value": 4525.5,
-          "change_1d": 3.65
-        }
-      ]
-    },
-    "CL=F": {
-      "symbol": "CL=F",
-      "name": "WTI",
-      "points": [
-        {
-          "report_date": "2026-08-19",
-          "market_date": "2026-08-19",
-          "value": 84.63,
-          "change_1d": -0.36
-        }
-      ]
-    },
     "^HSI": {
       "symbol": "^HSI",
-      "name": "Hang Seng",
+      "name": "恒生指数",
       "points": [
         {
           "report_date": "2026-08-19",
@@ -61,9 +13,21 @@
         }
       ]
     },
+    "HSTECH.HK": {
+      "symbol": "HSTECH.HK",
+      "name": "恒生科技指数",
+      "points": [
+        {
+          "report_date": "2026-08-19",
+          "market_date": "2026-08-19",
+          "value": 4682.05,
+          "change_1d": -1.21
+        }
+      ]
+    },
     "000300.SS": {
       "symbol": "000300.SS",
-      "name": "CSI 300",
+      "name": "沪深300",
       "points": [
         {
           "report_date": "2026-08-19",
@@ -73,15 +37,15 @@
         }
       ]
     },
-    "DX-Y.NYB": {
-      "symbol": "DX-Y.NYB",
-      "name": "Dollar Index",
+    "399006.SZ": {
+      "symbol": "399006.SZ",
+      "name": "创业板指",
       "points": [
         {
           "report_date": "2026-08-19",
           "market_date": "2026-08-19",
-          "value": 98.936,
-          "change_1d": -0.72
+          "value": 3473.49,
+          "change_1d": -6.26
         }
       ]
     }

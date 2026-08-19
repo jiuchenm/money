@@ -27,13 +27,10 @@ def load_snapshots() -> list[dict[str, Any]]:
 
 def build_history(snapshots: list[dict[str, Any]]) -> dict[str, Any]:
     tracked = {
-        "^NDX": "Nasdaq 100",
-        "^VIX": "VIX",
-        "GC=F": "Gold",
-        "CL=F": "WTI",
-        "^HSI": "Hang Seng",
-        "000300.SS": "CSI 300",
-        "DX-Y.NYB": "Dollar Index",
+        "^HSI": "恒生指数",
+        "HSTECH.HK": "恒生科技指数",
+        "000300.SS": "沪深300",
+        "399006.SZ": "创业板指",
     }
     series = {symbol: {"symbol": symbol, "name": name, "points": []} for symbol, name in tracked.items()}
     for snapshot in snapshots:

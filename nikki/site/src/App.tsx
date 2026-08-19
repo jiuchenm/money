@@ -18,16 +18,16 @@ function routeFromHash(): Route {
 
 function Shell({title, subtitle, children}: {title: string; subtitle: string; children: React.ReactNode}) {
   return <main className={styles.page}><header className={styles.header}><div>
-    <p className={styles.eyebrow}>NIKKI · MARKET MEMORY</p><h1>{title}</h1><p className={styles.subhead}>{subtitle}</p>
+    <p className={styles.eyebrow}>NIKKI · 港A市场雷达</p><h1>{title}</h1><p className={styles.subhead}>{subtitle}</p>
   </div><nav className={styles.tabs} aria-label="Nikki 页面"><a href="#/">最新</a><a href="#/trends">趋势</a><a href="#/archive">归档</a></nav></header>{children}</main>;
 }
 
 function Trends() {
   const series = Object.values(history.series);
-  return <Shell title="历史趋势" subtitle={'已保存 ' + history.generated_from + ' 个每日快照。趋势不会用后来数据覆盖当时观察。'}>
+  return <Shell title="港A历史趋势" subtitle={'已保存 ' + history.generated_from + ' 个每日快照，只跟踪恒指、恒生科技、沪深300与创业板。'}>
     {history.generated_from < 2 && <div className={styles.trendEmpty}>目前只有一个每日样本。连续运行后，下方将连接跨日变化。</div>}
     <div className={styles.trendGrid}>{series.map((item) => <section key={item.symbol} className={styles.trendPanel}>
-      <div className={styles.sectionTitle}><h2>{item.name}</h2><span>{item.symbol}</span></div>
+      <div className={styles.sectionTitle}><h2>{item.name}</h2><span>每日收盘</span></div>
       <div className={styles.trendValues}>{item.points.map((point) => <div key={point.report_date}><span>{point.report_date}</span><strong>{point.value.toLocaleString('zh-CN')}</strong><em className={point.change_1d >= 0 ? styles.positive : styles.negative}>{point.change_1d > 0 ? '+' : ''}{point.change_1d.toFixed(2)}%</em></div>)}</div>
     </section>)}</div>
   </Shell>;
