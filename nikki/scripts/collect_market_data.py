@@ -53,6 +53,8 @@ GROUPS = {
 }
 
 TENCENT_ALIASES = {
+    "000001.SS": "sh000001",
+    "000300.SS": "sh000300",
     "HSTECH.HK": "hkHSTECH",
     "399006.SZ": "sz399006",
     "000852.SS": "sh000852",
@@ -134,15 +136,23 @@ def fetch_chart(symbol: str) -> dict[str, Any]:
         for ts, close in zip(timestamps, closes)
         if close is not None
     ]
+    if len(rows) >= 2:
+        latest = dt.date.fromisoformat(rows[-1][0])
+        recent_count = sum(dt.date.fromisoformat(date) >= latest - dt.timedelta(days=30) for date, _ in rows)
+        if recent_count < 10:
+            raise ValueError(f"sparse recent Yahoo data for {symbol}: {recent_count} rows in 30 days")
     return summarize_rows(symbol, rows, "Yahoo Finance chart API (unofficial)")
 
 
 def fetch_market_asset(symbol: str) -> dict[str, Any]:
+    if symbol in TENCENT_ALIASES:
+        try:
+            return fetch_tencent_chart(symbol)
+        except Exception:
+            return fetch_chart(symbol)
     try:
         return fetch_chart(symbol)
     except Exception:
-        if symbol in TENCENT_ALIASES:
-            return fetch_tencent_chart(symbol)
         raise
 
 
@@ -408,7 +418,7 @@ def collect(as_of: dt.date) -> dict[str, Any]:
         "data_quality": {
             "status": "ok" if not failures else "partial",
             "failures": failures,
-            "disclaimer": "行情可能延迟。Yahoo Finance 为非官方接口；新闻标题只作事件线索，结论需回到原始来源。",
+            "disclaimer": "行情可能延迟。Yahoo Finance 与腾讯行情为非官方接口；新闻标题只作事件线索，结论需回到原始来源。",
         },
     }
 
