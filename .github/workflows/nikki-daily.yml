@@ -125,9 +125,6 @@ jobs:
     needs: [collect, synthesize]
     if: ${{ always() && needs.collect.result == 'success' }}
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -157,6 +154,10 @@ jobs:
         working-directory: nikki/site
       - run: npm run build
         working-directory: nikki/site
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nikki-site-dist
+          path: nikki/site/dist
       - name: Commit Nikki history to main
         env:
           REPORT_DATE: ${{ needs.collect.outputs.report_date }}
@@ -169,9 +170,20 @@ jobs:
             git pull --rebase origin main
             git push origin HEAD:main
           fi
-      - uses: actions/configure-pages@v5
+
+  deploy:
+    needs: publish
+    if: ${{ github.event.repository.private == false || vars.NIKKI_PAGES_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
         with:
-          enablement: true
+          name: nikki-site-dist
+          path: nikki/site/dist
+      - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: nikki/site/dist
