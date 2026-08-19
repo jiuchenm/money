@@ -130,10 +130,11 @@ function MacroCard({item}: {item: MacroItem}) {
 function EventCard({event}: {event: WorldEvent}) {
   const published = new Date(event.published_at || '').toLocaleString('zh-CN', {timeZone: 'Asia/Shanghai', hour12: false});
   return <article className={styles.eventCard}>
-    <div className={styles.eventHead}><span>{event.source_tier === 'primary' ? '一手来源' : '可靠媒体线索'}</span><time>{published}</time></div>
+    <div className={styles.eventHead}><span>{event.event_kind === 'metric_methodology' ? '指标口径核查' : event.event_kind === 'market_reaction' ? '市场正在定价' : event.source_tier === 'primary' ? '一手事实' : '可靠媒体核实'}</span><time>{published}</time></div>
     <h3>{event.chinese_summary}</h3><p><strong>对港A：</strong>{event.hk_a_impact}</p>
+    {event.metric_caveat && <p className={styles.metricCaveat}><strong>口径提醒：</strong>{event.metric_caveat}</p>}
     {event.affected_assets?.length ? <p className={styles.affected}>主要影响：{event.affected_assets.join('、')}</p> : null}
-    <details><summary>查看原文与证据状态</summary><p>{event.title} · {event.domain || event.source}</p>{event.url && <a href={event.url} target="_blank" rel="noreferrer">打开原始来源</a>}</details>
+    <details><summary>查看传导、定价与原始证据</summary>{event.mechanism && <p>传导：{event.mechanism}</p>}{event.priced_in && <p>定价：{event.priced_in}</p>}<p>{event.title} · {event.domain || event.source}</p>{event.url && <a href={event.url} target="_blank" rel="noreferrer">打开原始来源</a>}</details>
   </article>;
 }
 
@@ -179,7 +180,7 @@ export default function NikkiDashboard({snapshot, archived = false}: {snapshot: 
     <section className={styles.bottomGrid} id="events">
       <div className={styles.plainSection}>
         <div className={styles.sectionTitle}><h2>世界事件如何影响港A</h2><span>只展示72小时内可靠证据</span></div>
-        {processedEvents.length ? <div className={styles.eventList}>{processedEvents.map((event) => <EventCard key={event.title + '-' + event.published_at} event={event} />)}</div> : <p className={styles.empty}>今日没有足够可靠的事件证据，不能用旧闻解释当日行情。</p>}
+        {processedEvents.length ? <div className={styles.eventList}>{processedEvents.map((event) => <EventCard key={event.title + '-' + event.published_at} event={event} />)}</div> : snapshot.world_events.length ? <p className={styles.empty}>事件线索已经采集，但中文核验尚未完成，因此不展示未经加工的海外标题。</p> : <p className={styles.empty}>本次事件采集失败或没有通过来源核验，不能据此判断当日驱动。</p>}
       </div>
       <div className={styles.advancedData}><div className={styles.sectionTitle}><h2>海外宏观数据怎么读</h2><span>已换算为港A传导</span></div><p>这组数据用于判断美元流动性、估值和信用压力，不能单独作为买卖信号。</p>
         <div className={styles.macroList}>{snapshot.macro.map((item) => <MacroCard key={item.series} item={item} />)}</div>

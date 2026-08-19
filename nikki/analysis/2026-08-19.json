@@ -1,4 +1,77 @@
 {
+  "world_events": {
+    "coverage_status": {
+      "macro_geopolitics": "verified",
+      "china_hong_kong": "verified",
+      "ai_technology": "verified",
+      "metric_scrutiny": "verified"
+    },
+    "events": [
+      {
+        "original_title": "Anthropic tells investors annualized revenue run rate climbed to $65 billion in July",
+        "url": "https://www.cnbc.com/video/2026/08/18/anthropic-tells-investors-annualized-revenue-run-rate-climbed-to-65-billion-in-july.html",
+        "domain": "cnbc.com",
+        "published_at": "2026-08-18T18:25:11Z",
+        "source": "CNBC confirmation; Bloomberg-reported investor figures",
+        "source_tier": "recognized_media",
+        "evidence_status": "partial",
+        "event_kind": "metric_methodology",
+        "chinese_summary": "Anthropic 向投资者披露，按7月末短期收入速度外推的年化收入运行率超过650亿美元，市场据此强化了AI应用需求和潜在IPO估值预期。",
+        "metric_caveat": "650亿美元不是过去12个月已实现收入，也不是统一会计口径的订阅ARR。报道同期披露的最新完整季度初步收入约115亿美元，简单年化约460亿美元；两家公司也可能采用不同计算口径。",
+        "hk_a_impact": "短线支持港股互联网、云计算和A股算力产业的需求叙事，但若市场把运行率直接当成审计收入，会高估AI商业化速度和可支撑的估值。",
+        "affected_assets": ["恒生科技", "港股互联网", "A股算力", "光模块", "数据中心"],
+        "mechanism": "海外AI收入预期上升，会推高云厂商算力采购与融资预期，再传到中国算力、光模块和数据中心估值；但收入质量和现金流决定这条传导能否持续。",
+        "priced_in": "AI需求仍被积极定价，但8月18日美股科技和半导体走弱，说明市场同时在交易高估值、高利率和资本开支回报风险。"
+      },
+      {
+        "original_title": "Wall St Futures Flat After Tech Rout; Iran Tensions, Retail Earnings in Focus",
+        "url": "https://money.usnews.com/investing/news/articles/2026-08-19/us-stock-futures-steady-after-tech-slump-investors-focus-on-middle-east-tensions",
+        "domain": "money.usnews.com",
+        "published_at": "2026-08-19T10:35:00Z",
+        "source": "Reuters via U.S. News",
+        "source_tier": "recognized_media",
+        "evidence_status": "verified",
+        "event_kind": "market_reaction",
+        "chinese_summary": "美伊冲突和霍尔木兹海峡运输不确定性推高原油与长期国债收益率，全球市场开始同时计价能源通胀和更高折现率。",
+        "hk_a_impact": "这对恒生科技和A股高估值成长偏空，对中资石油、煤炭和部分航运偏多；若油价持续上涨，航空、化工下游和消费成本会承压。",
+        "affected_assets": ["恒生科技", "A股成长", "石油煤炭", "航运", "航空"],
+        "mechanism": "冲突升级推高油价和通胀预期，长期利率上升压低成长股估值，同时改善上游能源利润预期。",
+        "priced_in": "8月18日纳指与半导体已经下跌，8月19日港A成长指数继续承压，事件已有部分定价，但冲突持续时间仍未确定。"
+      },
+      {
+        "original_title": "2026 INTERIM RESULTS, INTERIM DIVIDEND AND CLOSURE OF REGISTER OF MEMBERS",
+        "url": "https://www.hkexgroup.com/-/media/HKEX-Group-Site/ssd/Investor-Relations/annouce/documents/2026/260819-interim_e.pdf",
+        "domain": "hkexgroup.com",
+        "published_at": "2026-08-19T11:19:59Z",
+        "source": "HKEX 2026 interim results announcement",
+        "source_tier": "primary",
+        "evidence_status": "verified",
+        "event_kind": "fact",
+        "chinese_summary": "香港交易所上半年收入及其他收益同比增长19%，股东应占利润增长24%；现货市场日均成交额增长18%，IPO集资额增长94%。",
+        "metric_caveat": "利润包含2.98亿港元非上市股权投资估值收益，判断核心经营时应同时看交易、结算和上市费增长。",
+        "hk_a_impact": "直接利好港交所自身盈利，也验证港股成交与融资生态改善；但不等于恒生科技或全部港股公司的盈利同步转强。",
+        "affected_assets": ["港交所", "港股券商", "港股IPO链条"],
+        "mechanism": "成交、互联互通和IPO增加，直接提高交易费、结算费、存管费与上市费。",
+        "priced_in": "属于当日一手财报，是否超预期还需结合股价反应和市场一致预期，不能只看同比增速。"
+      },
+      {
+        "original_title": "1—7月份国民经济保持总体平稳、向新向优发展态势",
+        "url": "https://www.stats.gov.cn/sj/zxfb/202608/t20260817_1965056.html",
+        "domain": "stats.gov.cn",
+        "published_at": "2026-08-17T07:00:00Z",
+        "source": "国家统计局",
+        "source_tier": "primary",
+        "evidence_status": "verified",
+        "event_kind": "fact",
+        "chinese_summary": "中国7月工业增加值同比增长4.5%，但社零仅增长0.6%；前7个月固定资产投资下降6.7%，房地产开发投资下降19.2%，显示生产强于内需。",
+        "metric_caveat": "工业增加值是实际增速，社零和多数投资指标按现价或可比口径统计，不能把不同口径直接相减。",
+        "hk_a_impact": "压制地产、可选消费和顺周期盈利预期，提升稳增长政策预期；高技术制造仍强，对AI、自动化和先进制造形成结构性支撑。",
+        "affected_assets": ["A股消费", "地产链", "银行", "先进制造", "港股内需"],
+        "mechanism": "弱内需拖累企业收入和信贷需求，但也提高财政、货币和消费支持政策加码的可能性。",
+        "priced_in": "数据发布于8月17日，8月19日已不是全新消息；当日A股下跌更多是弱基本面与全球利率压力叠加后的继续定价。"
+      }
+    ]
+  },
   "us_macro": {
     "headline": "美股盘中分化：等权与小盘走强，科技和半导体承压，暂属轮动而非全面避险。",
     "stance": "震荡，宽基与信用稳定，科技方向谨慎。",

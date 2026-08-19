@@ -102,6 +102,7 @@
 .eventCard summary, .macroCard summary { cursor: pointer; color: #a5ecd5; }
 .eventCard a { color: #9be8d0; }
 .affected { color: var(--muted) !important; }
+.metricCaveat { padding: 9px 10px; color: #ffe2a6 !important; background: #49391e; }
 .empty { min-height: 90px; padding: 16px; color: var(--text); }
 .advancedData { align-self: start; }
 .advancedData > p { color: var(--text); font-size: .78rem; line-height: 1.55; }

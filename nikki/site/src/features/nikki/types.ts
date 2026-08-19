@@ -49,6 +49,9 @@ export type WorldEvent = {
   affected_assets?: string[];
   mechanism?: string;
   priced_in?: string;
+  event_kind?: 'fact' | 'metric_methodology' | 'market_reaction';
+  metric_caveat?: string;
+  coverage_topic?: string;
 };
 
 export type NikkiSnapshot = {
@@ -61,6 +64,7 @@ export type NikkiSnapshot = {
   macro: Array<{series: string; label: string; market_date: string; value: number; change: number; source: string}>;
   world_events: WorldEvent[];
   world_events_status?: 'collected' | 'insufficient_evidence';
+  world_events_coverage?: Record<string, string>;
   signals: Array<{level: 'calm' | 'watch' | 'risk'; label: string; detail: string}>;
   agent_notes: Record<string, AgentNote>;
   data_quality: {status: string; failures: Array<{source: string; error: string}>; disclaimer: string};

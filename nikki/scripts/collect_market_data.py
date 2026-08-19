@@ -6,6 +6,7 @@ import datetime as dt
 import email.utils
 import json
 import math
+import os
 import re
 import statistics
 import urllib.parse
@@ -182,21 +183,29 @@ def fetch_fred(series_id: str, label: str) -> dict[str, Any]:
 
 RECOGNIZED_NEWS_DOMAINS = {
     "apnews.com",
+    "axios.com",
     "bbc.com",
     "bloomberg.com",
     "cnbc.com",
     "ft.com",
     "nikkei.com",
+    "qz.com",
+    "rthk.hk",
     "reuters.com",
     "scmp.com",
+    "techcrunch.com",
+    "usnews.com",
     "wsj.com",
+    "yahoo.com",
 }
 PRIMARY_SOURCE_DOMAINS = {
+    "anthropic.com",
     "bis.org",
     "ecb.europa.eu",
     "federalreserve.gov",
     "iea.org",
     "imf.org",
+    "hkexgroup.com",
     "mofcom.gov.cn",
     "opec.org",
     "pbc.gov.cn",
@@ -205,6 +214,12 @@ PRIMARY_SOURCE_DOMAINS = {
     "worldbank.org",
 }
 BLOCKED_NEWS_DOMAINS = {"naturalnews.com", "zerohedge.com"}
+EVENT_QUERIES = {
+    "macro_geopolitics": "global markets central banks bond yields tariffs sanctions oil war major market news",
+    "china_hong_kong": "China Hong Kong economy policy markets company filings major news",
+    "ai_technology": "AI companies revenue earnings capex chips cloud data centers major news",
+    "metric_scrutiny": "Anthropic OpenAI AI company ARR annualized revenue run rate bookings adjusted profit accounting methodology",
+}
 
 
 def parse_event_time(raw: str | None) -> dt.datetime | None:
@@ -243,16 +258,35 @@ def source_tier(domain: str) -> str | None:
 
 
 def normalize_event_title(title: str) -> str:
-    words = re.findall(r"[a-z0-9]+", title.lower())
+    normalized = re.sub(r"(\d+)b\b", r"\1 billion", title.lower())
+    words = re.findall(r"[a-z0-9]+", normalized)
     noise = {"a", "an", "and", "for", "in", "of", "on", "the", "to", "with"}
     return " ".join(word for word in words if word not in noise)[:180]
+
+
+def is_specific_event_title(title: str) -> bool:
+    lowered = title.lower().strip()
+    generic_phrases = (
+        "latest from",
+        "latest news and",
+        "latest ai news",
+        "market outlook",
+        "news bulletin",
+    )
+    return len(lowered.split()) >= 5 and not any(phrase in lowered for phrase in generic_phrases)
 
 
 def event_title_is_duplicate(key: str, seen: list[set[str]]) -> bool:
     tokens = set(key.split())
     if not tokens:
         return True
-    return any(len(tokens & prior) / len(tokens | prior) >= 0.72 for prior in seen)
+    for prior in seen:
+        similarity = len(tokens & prior) / len(tokens | prior)
+        same_subject = key.split()[0] in prior
+        shared_numbers = {token for token in tokens & prior if token.isdigit()}
+        if similarity >= 0.72 or (same_subject and shared_numbers and similarity >= 0.3):
+            return True
+    return False
 
 
 def filter_world_events(events: list[dict[str, Any]], as_of: dt.date) -> list[dict[str, Any]]:
@@ -267,7 +301,7 @@ def filter_world_events(events: list[dict[str, Any]], as_of: dt.date) -> list[di
         title = str(event.get("title") or "").strip()
         language = str(event.get("language") or "English").lower()
         key = normalize_event_title(title)
-        if not published or not (cutoff <= published <= report_end) or not tier or not key:
+        if not published or not (cutoff <= published <= report_end) or not tier or not key or not is_specific_event_title(title):
             continue
         if language not in {"english", "en"} or event_title_is_duplicate(key, seen):
             continue
@@ -279,10 +313,63 @@ def filter_world_events(events: list[dict[str, Any]], as_of: dt.date) -> list[di
             "source_tier": tier,
             "evidence_status": "verified_source" if tier == "primary" else "headline_lead",
         })
-    return sorted(accepted, key=lambda item: item["published_at"], reverse=True)[:8]
+    return sorted(accepted, key=lambda item: item["published_at"], reverse=True)[:12]
+
+
+def webiq_key() -> str | None:
+    value = os.environ.get("WEBIQ_KEY", "").strip()
+    if value:
+        return value
+    key_path = ROOT / "webiq" / "key"
+    return key_path.read_text(encoding="utf-8").strip() if key_path.exists() else None
+
+
+def fetch_webiq_events(as_of: dt.date) -> tuple[list[dict[str, Any]], str | None]:
+    key = webiq_key()
+    if not key:
+        return [], "WEBIQ_KEY unavailable"
+    candidates: list[dict[str, Any]] = []
+    failures: list[str] = []
+    for topic, query in EVENT_QUERIES.items():
+        body = json.dumps({
+            "query": f"{query} {as_of.isoformat()}",
+            "maxResults": 10,
+            "language": "en",
+            "region": "US",
+            "maxLength": 1500,
+            "contentFormat": "passage",
+        }).encode("utf-8")
+        request = urllib.request.Request(
+            "https://api.microsoft.ai/v3/search/news",
+            data=body,
+            headers={"User-Agent": USER_AGENT, "x-apikey": key, "content-type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            topic_candidates = []
+            for item in payload.get("newsResults", []):
+                topic_candidates.append({
+                    "title": item.get("title", "Untitled"),
+                    "url": item.get("url"),
+                    "domain": normalized_domain(None, item.get("url")),
+                    "published_at": item.get("lastUpdatedAt"),
+                    "language": "English",
+                    "source": "Microsoft AI Search news discovery",
+                    "coverage_topic": topic,
+                })
+            candidates.extend(filter_world_events(topic_candidates, as_of)[:3])
+        except Exception as exc:
+            failures.append(f"{topic}: {exc}")
+    events = filter_world_events(candidates, as_of)
+    return events, "; ".join(failures) if failures else None
 
 
 def fetch_world_events(as_of: dt.date) -> tuple[list[dict[str, Any]], str | None]:
+    webiq_events, webiq_error = fetch_webiq_events(as_of)
+    if webiq_events:
+        return webiq_events, webiq_error
     start = (as_of - dt.timedelta(days=3)).strftime("%Y%m%d000000")
     end = (as_of + dt.timedelta(days=1)).strftime("%Y%m%d000000")
     query = urllib.parse.quote('(central bank OR tariff OR sanctions OR war OR oil OR inflation OR treasury OR China)')
@@ -305,7 +392,7 @@ def fetch_world_events(as_of: dt.date) -> tuple[list[dict[str, Any]], str | None
             })
         events = filter_world_events(candidates, as_of)
         if events:
-            return events, None
+            return events, webiq_error
     except Exception as gdelt_exc:
         gdelt_error = gdelt_exc
 
@@ -328,7 +415,8 @@ def fetch_world_events(as_of: dt.date) -> tuple[list[dict[str, Any]], str | None
                 "source": "Google News RSS discovery lead",
             })
         events = filter_world_events(candidates, as_of)
-        warning = f"GDELT unavailable: {gdelt_error}; used RSS fallback" if gdelt_error else None
+        warnings = [item for item in (webiq_error, f"GDELT unavailable: {gdelt_error}; used RSS fallback" if gdelt_error else None) if item]
+        warning = "; ".join(warnings) if warnings else None
         return events, warning
     except Exception as rss_exc:  # Keep market data usable if both news sources fail.
         if gdelt_error:

@@ -16,6 +16,7 @@ def merge_event_analysis(snapshot: dict[str, Any], analysis: dict[str, Any]) -> 
     event_analysis = analysis.pop("world_events", None)
     if isinstance(event_analysis, dict):
         interpreted = event_analysis.get("events", [])
+        snapshot["world_events_coverage"] = event_analysis.get("coverage_status", {})
     elif isinstance(event_analysis, list):
         interpreted = event_analysis
     else:
@@ -29,13 +30,28 @@ def merge_event_analysis(snapshot: dict[str, Any], analysis: dict[str, Any]) -> 
         for item in interpreted
         if isinstance(item, dict) and (item.get("original_title") or item.get("title"))
     }
+    matched: set[int] = set()
     for event in snapshot.get("world_events", []):
         interpretation = by_url.get(event.get("url")) or by_title.get(event.get("title"))
         if not interpretation:
             continue
-        for key in ("chinese_summary", "hk_a_impact", "affected_assets", "mechanism", "priced_in"):
+        matched.add(id(interpretation))
+        for key in ("chinese_summary", "hk_a_impact", "affected_assets", "mechanism", "priced_in", "event_kind", "metric_caveat"):
             if interpretation.get(key) is not None:
                 event[key] = interpretation[key]
+
+    for interpretation in interpreted:
+        if not isinstance(interpretation, dict) or id(interpretation) in matched:
+            continue
+        required = ("original_title", "url", "published_at", "chinese_summary", "hk_a_impact", "source")
+        if not all(interpretation.get(key) for key in required):
+            continue
+        snapshot.setdefault("world_events", []).append({
+            **interpretation,
+            "title": interpretation["original_title"],
+            "domain": interpretation.get("domain"),
+            "source_tier": interpretation.get("source_tier", "recognized_media"),
+        })
 
 
 def load_snapshots() -> list[dict[str, Any]]:
