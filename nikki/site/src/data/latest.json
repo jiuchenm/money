@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "report_date": "2026-08-19",
-  "fetched_at": "2026-08-19T14:08:23+00:00",
+  "fetched_at": "2026-08-19T14:19:23+00:00",
   "timezone": "Asia/Shanghai",
   "market_phase_note": "A/H 股为当日收盘数据；美股、外汇与商品在北京时间晚间运行时可能仍为盘中或盘前数据，请以各资产 market_date 和 fetched_at 为准。",
   "groups": {
@@ -12,13 +12,13 @@
         "^NDX": {
           "symbol": "^NDX",
           "market_date": "2026-08-19",
-          "value": 29368.9023,
-          "change_1d": -0.41,
-          "change_5d": -1.26,
-          "change_20d": 1.28,
-          "drawdown_1y": -4.21,
-          "sma_50": 29305.1669,
-          "sma_200": 26793.1201,
+          "value": 29359.4375,
+          "change_1d": -0.45,
+          "change_5d": -1.29,
+          "change_20d": 1.25,
+          "drawdown_1y": -4.24,
+          "sma_50": 29304.9776,
+          "sma_200": 26793.0728,
           "above_50d": true,
           "above_200d": true,
           "volatility_20d": 23.8,
@@ -145,7 +145,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 29368.9023
+              "value": 29359.4375
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -154,16 +154,16 @@
         "QQQ": {
           "symbol": "QQQ",
           "market_date": "2026-08-19",
-          "value": 714.5,
-          "change_1d": -0.42,
-          "change_5d": -1.27,
-          "change_20d": 1.3,
-          "drawdown_1y": -4.14,
-          "sma_50": 712.8262,
-          "sma_200": 650.8958,
+          "value": 714.39,
+          "change_1d": -0.43,
+          "change_5d": -1.29,
+          "change_20d": 1.28,
+          "drawdown_1y": -4.15,
+          "sma_50": 712.824,
+          "sma_200": 650.8953,
           "above_50d": true,
           "above_200d": true,
-          "volatility_20d": 23.82,
+          "volatility_20d": 23.83,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -287,7 +287,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 714.5
+              "value": 714.39
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -296,16 +296,16 @@
         "SOXX": {
           "symbol": "SOXX",
           "market_date": "2026-08-19",
-          "value": 519.3,
-          "change_1d": -2.28,
-          "change_5d": -5.0,
-          "change_20d": -6.52,
-          "drawdown_1y": -20.72,
-          "sma_50": 559.9685,
-          "sma_200": 418.3349,
+          "value": 516.14,
+          "change_1d": -2.87,
+          "change_5d": -5.57,
+          "change_20d": -7.09,
+          "drawdown_1y": -21.2,
+          "sma_50": 559.9053,
+          "sma_200": 418.3191,
           "above_50d": false,
           "above_200d": true,
-          "volatility_20d": 56.83,
+          "volatility_20d": 57.15,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -429,7 +429,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 519.3
+              "value": 516.14
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -438,16 +438,16 @@
         "SPY": {
           "symbol": "SPY",
           "market_date": "2026-08-19",
-          "value": 769.71,
-          "change_1d": 0.29,
-          "change_5d": -0.36,
-          "change_20d": 2.98,
-          "drawdown_1y": -1.05,
-          "sma_50": 750.1792,
-          "sma_200": 704.1152,
+          "value": 769.97,
+          "change_1d": 0.33,
+          "change_5d": -0.33,
+          "change_20d": 3.02,
+          "drawdown_1y": -1.02,
+          "sma_50": 750.1844,
+          "sma_200": 704.1165,
           "above_50d": true,
           "above_200d": true,
-          "volatility_20d": 13.6,
+          "volatility_20d": 13.61,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -571,7 +571,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 769.71
+              "value": 769.97
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -587,16 +587,16 @@
         "DX-Y.NYB": {
           "symbol": "DX-Y.NYB",
           "market_date": "2026-08-19",
-          "value": 98.939,
-          "change_1d": -0.71,
+          "value": 98.936,
+          "change_1d": -0.72,
           "change_5d": -1.07,
           "change_20d": -2.18,
           "drawdown_1y": -2.63,
-          "sma_50": 100.5286,
+          "sma_50": 100.5285,
           "sma_200": 99.1942,
           "above_50d": false,
           "above_200d": false,
-          "volatility_20d": 4.91,
+          "volatility_20d": 4.92,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -720,7 +720,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 98.939
+              "value": 98.936
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -729,16 +729,16 @@
         "CNY=X": {
           "symbol": "CNY=X",
           "market_date": "2026-08-19",
-          "value": 6.7184,
+          "value": 6.7186,
           "change_1d": -0.32,
           "change_5d": -0.39,
-          "change_20d": -0.7,
+          "change_20d": -0.69,
           "drawdown_1y": -6.49,
           "sma_50": 6.7688,
           "sma_200": 6.8838,
           "above_50d": false,
           "above_200d": false,
-          "volatility_20d": 1.39,
+          "volatility_20d": 1.38,
           "sparkline": [
             {
               "date": "2026-04-15",
@@ -862,7 +862,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 6.7184
+              "value": 6.7186
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -871,16 +871,16 @@
         "^TNX": {
           "symbol": "^TNX",
           "market_date": "2026-08-19",
-          "value": 4.654,
-          "change_1d": -1.1,
-          "change_5d": -0.6,
-          "change_20d": -0.06,
-          "drawdown_1y": -1.92,
-          "sma_50": 4.5714,
-          "sma_200": 4.3226,
+          "value": 4.643,
+          "change_1d": -1.34,
+          "change_5d": -0.83,
+          "change_20d": -0.3,
+          "drawdown_1y": -2.15,
+          "sma_50": 4.5712,
+          "sma_200": 4.3225,
           "above_50d": true,
           "above_200d": true,
-          "volatility_20d": 14.46,
+          "volatility_20d": 14.72,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -1004,7 +1004,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 4.654
+              "value": 4.643
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -1013,16 +1013,16 @@
         "TLT": {
           "symbol": "TLT",
           "market_date": "2026-08-19",
-          "value": 82.8681,
-          "change_1d": 1.48,
-          "change_5d": 0.92,
-          "change_20d": -0.29,
-          "drawdown_1y": -6.67,
-          "sma_50": 83.9292,
-          "sma_200": 85.1504,
+          "value": 82.985,
+          "change_1d": 1.62,
+          "change_5d": 1.07,
+          "change_20d": -0.14,
+          "drawdown_1y": -6.54,
+          "sma_50": 83.9315,
+          "sma_200": 85.1509,
           "above_50d": false,
           "above_200d": false,
-          "volatility_20d": 11.37,
+          "volatility_20d": 11.62,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -1146,7 +1146,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 82.8681
+              "value": 82.985
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -1162,16 +1162,16 @@
         "GC=F": {
           "symbol": "GC=F",
           "market_date": "2026-08-19",
-          "value": 4517.3999,
-          "change_1d": 3.47,
-          "change_5d": 2.46,
-          "change_20d": 8.93,
-          "drawdown_1y": -15.06,
-          "sma_50": 4161.06,
-          "sma_200": 4493.0205,
+          "value": 4525.5,
+          "change_1d": 3.65,
+          "change_5d": 2.64,
+          "change_20d": 9.13,
+          "drawdown_1y": -14.91,
+          "sma_50": 4161.222,
+          "sma_200": 4493.061,
           "above_50d": true,
           "above_200d": true,
-          "volatility_20d": 24.21,
+          "volatility_20d": 24.51,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -1295,7 +1295,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 4517.3999
+              "value": 4525.5
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -1304,16 +1304,16 @@
         "SI=F": {
           "symbol": "SI=F",
           "market_date": "2026-08-19",
-          "value": 65.18,
-          "change_1d": 1.94,
-          "change_5d": -0.57,
-          "change_20d": 8.6,
-          "drawdown_1y": -43.36,
-          "sma_50": 61.4765,
-          "sma_200": 70.838,
+          "value": 65.33,
+          "change_1d": 2.17,
+          "change_5d": -0.34,
+          "change_20d": 8.85,
+          "drawdown_1y": -43.23,
+          "sma_50": 61.4795,
+          "sma_200": 70.8387,
           "above_50d": true,
           "above_200d": false,
-          "volatility_20d": 34.87,
+          "volatility_20d": 35.01,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -1437,7 +1437,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 65.18
+              "value": 65.33
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -1446,16 +1446,16 @@
         "HG=F": {
           "symbol": "HG=F",
           "market_date": "2026-08-19",
-          "value": 6.4675,
-          "change_1d": -0.23,
-          "change_5d": -1.96,
-          "change_20d": 0.26,
-          "drawdown_1y": -3.51,
-          "sma_50": 6.3564,
+          "value": 6.467,
+          "change_1d": -0.24,
+          "change_5d": -1.97,
+          "change_20d": 0.25,
+          "drawdown_1y": -3.52,
+          "sma_50": 6.3563,
           "sma_200": 5.8916,
           "above_50d": true,
           "above_200d": true,
-          "volatility_20d": 18.5,
+          "volatility_20d": 18.51,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -1579,7 +1579,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 6.4675
+              "value": 6.467
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -1588,16 +1588,16 @@
         "GLD": {
           "symbol": "GLD",
           "market_date": "2026-08-19",
-          "value": 410.01,
-          "change_1d": 2.88,
-          "change_5d": 1.26,
-          "change_20d": 8.15,
-          "drawdown_1y": -17.32,
-          "sma_50": 381.4856,
-          "sma_200": 412.935,
+          "value": 410.345,
+          "change_1d": 2.96,
+          "change_5d": 1.34,
+          "change_20d": 8.24,
+          "drawdown_1y": -17.25,
+          "sma_50": 381.4923,
+          "sma_200": 412.9367,
           "above_50d": true,
           "above_200d": false,
-          "volatility_20d": 25.05,
+          "volatility_20d": 25.15,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -1721,7 +1721,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 410.01
+              "value": 410.345
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -1737,13 +1737,13 @@
         "CL=F": {
           "symbol": "CL=F",
           "market_date": "2026-08-19",
-          "value": 84.59,
-          "change_1d": -0.41,
-          "change_5d": 1.59,
-          "change_20d": -2.58,
-          "drawdown_1y": -25.11,
-          "sma_50": 79.1342,
-          "sma_200": 77.2014,
+          "value": 84.63,
+          "change_1d": -0.36,
+          "change_5d": 1.63,
+          "change_20d": -2.53,
+          "drawdown_1y": -25.07,
+          "sma_50": 79.135,
+          "sma_200": 77.2016,
           "above_50d": true,
           "above_200d": true,
           "volatility_20d": 60.77,
@@ -1870,7 +1870,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 84.59
+              "value": 84.63
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -2021,16 +2021,16 @@
         "NG=F": {
           "symbol": "NG=F",
           "market_date": "2026-08-19",
-          "value": 2.854,
-          "change_1d": 2.81,
-          "change_5d": 1.78,
-          "change_20d": -2.43,
-          "drawdown_1y": -61.74,
-          "sma_50": 2.9645,
-          "sma_200": 3.3993,
+          "value": 2.84,
+          "change_1d": 2.31,
+          "change_5d": 1.28,
+          "change_20d": -2.91,
+          "drawdown_1y": -61.93,
+          "sma_50": 2.9642,
+          "sma_200": 3.3992,
           "above_50d": false,
           "above_200d": false,
-          "volatility_20d": 38.29,
+          "volatility_20d": 37.83,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -2154,7 +2154,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 2.854
+              "value": 2.84
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -2163,16 +2163,16 @@
         "XLE": {
           "symbol": "XLE",
           "market_date": "2026-08-19",
-          "value": 64.0522,
-          "change_1d": 0.58,
-          "change_5d": 4.95,
-          "change_20d": 8.2,
+          "value": 64.14,
+          "change_1d": 0.72,
+          "change_5d": 5.1,
+          "change_20d": 8.34,
           "drawdown_1y": 0.0,
-          "sma_50": 57.2155,
-          "sma_200": 53.1888,
+          "sma_50": 57.2172,
+          "sma_200": 53.1893,
           "above_50d": true,
           "above_200d": true,
-          "volatility_20d": 24.9,
+          "volatility_20d": 24.92,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -2296,7 +2296,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 64.0522
+              "value": 64.14
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -2312,16 +2312,16 @@
         "^VIX": {
           "symbol": "^VIX",
           "market_date": "2026-08-19",
-          "value": 15.46,
-          "change_1d": -2.4,
-          "change_5d": 6.25,
-          "change_20d": -7.09,
-          "drawdown_1y": -50.21,
-          "sma_50": 16.9924,
-          "sma_200": 18.506,
+          "value": 15.27,
+          "change_1d": -3.6,
+          "change_5d": 4.95,
+          "change_20d": -8.23,
+          "drawdown_1y": -50.82,
+          "sma_50": 16.9886,
+          "sma_200": 18.5051,
           "above_50d": false,
           "above_200d": false,
-          "volatility_20d": 107.41,
+          "volatility_20d": 107.81,
           "sparkline": [
             {
               "date": "2026-04-14",
@@ -2445,7 +2445,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 15.46
+              "value": 15.27
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -2454,16 +2454,16 @@
         "HYG": {
           "symbol": "HYG",
           "market_date": "2026-08-19",
-          "value": 79.685,
-          "change_1d": 0.19,
-          "change_5d": 0.09,
-          "change_20d": 0.69,
-          "drawdown_1y": -0.13,
-          "sma_50": 79.2691,
-          "sma_200": 78.3777,
+          "value": 79.705,
+          "change_1d": 0.22,
+          "change_5d": 0.12,
+          "change_20d": 0.72,
+          "drawdown_1y": -0.11,
+          "sma_50": 79.2695,
+          "sma_200": 78.3778,
           "above_50d": true,
           "above_200d": true,
-          "volatility_20d": 2.96,
+          "volatility_20d": 2.98,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -2587,7 +2587,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 79.685
+              "value": 79.705
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -2596,16 +2596,16 @@
         "LQD": {
           "symbol": "LQD",
           "market_date": "2026-08-19",
-          "value": 106.545,
-          "change_1d": 0.67,
-          "change_5d": 0.4,
-          "change_20d": 0.32,
-          "drawdown_1y": -2.41,
-          "sma_50": 107.0517,
-          "sma_200": 107.4251,
+          "value": 106.625,
+          "change_1d": 0.74,
+          "change_5d": 0.48,
+          "change_20d": 0.39,
+          "drawdown_1y": -2.33,
+          "sma_50": 107.0533,
+          "sma_200": 107.4255,
           "above_50d": false,
           "above_200d": false,
-          "volatility_20d": 5.84,
+          "volatility_20d": 5.96,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -2729,7 +2729,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 106.545
+              "value": 106.625
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -2738,16 +2738,16 @@
         "RSP": {
           "symbol": "RSP",
           "market_date": "2026-08-19",
-          "value": 222.88,
-          "change_1d": 1.41,
-          "change_5d": 0.81,
-          "change_20d": 4.79,
+          "value": 223.18,
+          "change_1d": 1.54,
+          "change_5d": 0.95,
+          "change_20d": 4.93,
           "drawdown_1y": 0.0,
-          "sma_50": 214.5515,
-          "sma_200": 200.5305,
+          "sma_50": 214.5575,
+          "sma_200": 200.532,
           "above_50d": true,
           "above_200d": true,
-          "volatility_20d": 11.4,
+          "volatility_20d": 11.59,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -2871,7 +2871,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 222.88
+              "value": 223.18
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -4037,16 +4037,16 @@
         "IWM": {
           "symbol": "IWM",
           "market_date": "2026-08-19",
-          "value": 302.27,
-          "change_1d": 0.68,
-          "change_5d": -0.15,
-          "change_20d": 2.89,
-          "drawdown_1y": -0.92,
-          "sma_50": 296.0242,
-          "sma_200": 268.5706,
+          "value": 302.17,
+          "change_1d": 0.65,
+          "change_5d": -0.18,
+          "change_20d": 2.85,
+          "drawdown_1y": -0.96,
+          "sma_50": 296.0222,
+          "sma_200": 268.5701,
           "above_50d": true,
           "above_200d": true,
-          "volatility_20d": 14.88,
+          "volatility_20d": 14.86,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -4170,7 +4170,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 302.27
+              "value": 302.17
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -4179,16 +4179,16 @@
         "XLK": {
           "symbol": "XLK",
           "market_date": "2026-08-19",
-          "value": 183.3498,
-          "change_1d": -1.22,
-          "change_5d": -2.92,
-          "change_20d": 1.71,
-          "drawdown_1y": -7.39,
-          "sma_50": 182.8163,
-          "sma_200": 157.8006,
+          "value": 183.005,
+          "change_1d": -1.41,
+          "change_5d": -3.1,
+          "change_20d": 1.52,
+          "drawdown_1y": -7.56,
+          "sma_50": 182.8094,
+          "sma_200": 157.7989,
           "above_50d": true,
           "above_200d": true,
-          "volatility_20d": 33.25,
+          "volatility_20d": 33.36,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -4312,7 +4312,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 183.3498
+              "value": 183.005
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -4321,16 +4321,16 @@
         "XLP": {
           "symbol": "XLP",
           "market_date": "2026-08-19",
-          "value": 86.82,
-          "change_1d": 1.45,
-          "change_5d": 2.05,
-          "change_20d": 2.89,
-          "drawdown_1y": -2.33,
-          "sma_50": 84.6509,
-          "sma_200": 82.0098,
+          "value": 87.02,
+          "change_1d": 1.68,
+          "change_5d": 2.28,
+          "change_20d": 3.13,
+          "drawdown_1y": -2.1,
+          "sma_50": 84.6549,
+          "sma_200": 82.0108,
           "above_50d": true,
           "above_200d": true,
-          "volatility_20d": 17.0,
+          "volatility_20d": 17.25,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -4454,7 +4454,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 86.82
+              "value": 87.02
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -4463,16 +4463,16 @@
         "XLU": {
           "symbol": "XLU",
           "market_date": "2026-08-19",
-          "value": 44.08,
-          "change_1d": 0.14,
-          "change_5d": 0.55,
-          "change_20d": -4.03,
-          "drawdown_1y": -6.41,
-          "sma_50": 44.8101,
-          "sma_200": 44.3315,
+          "value": 44.235,
+          "change_1d": 0.49,
+          "change_5d": 0.9,
+          "change_20d": -3.69,
+          "drawdown_1y": -6.08,
+          "sma_50": 44.8132,
+          "sma_200": 44.3323,
           "above_50d": false,
           "above_200d": false,
-          "volatility_20d": 11.33,
+          "volatility_20d": 11.54,
           "sparkline": [
             {
               "date": "2026-04-13",
@@ -4596,7 +4596,7 @@
             },
             {
               "date": "2026-08-19",
-              "value": 44.08
+              "value": 44.235
             }
           ],
           "source": "Yahoo Finance chart API (unofficial)",
@@ -4610,9 +4610,9 @@
     {
       "series": "BAMLH0A0HYM2",
       "label": "US High Yield OAS",
-      "market_date": "2026-08-17",
-      "value": 2.7,
-      "change": 0.03,
+      "market_date": "2026-08-18",
+      "value": 2.75,
+      "change": 0.05,
       "source": "Federal Reserve Bank of St. Louis FRED"
     },
     {
@@ -4642,12 +4642,68 @@
   ],
   "world_events": [
     {
-      "title": "LIVE | US Stock Market Today: Dow Jones Falls 0.10%, Nasdaq Slides 1.32%, S&P 500 Down 0.59% as Oil Tops $91; Netflix, Adobe, Intuit & IBM Surge Wall Street Amid Fed Hike | What Investors Should Watch - The Sunday Guardian",
-      "url": "https://news.google.com/rss/articles/CBMizAJBVV95cUxQWGlZMkNEOTJrU3J4VGZkOTZKUVk2alI5S251dkNFWDZNNnlmWmpVeXpXTzFlVU1YQlF1akV0TEtaQllaelZxdUpYcHNncUw3ZnIweXIzSDlVM1p6NHQxOGIyNl9NaHF2UnE4RDUtXzZ0dFV2bzhBcXByWExCVUpxXy12Y2V2WnJOczJZVWNYa1ZObGJkT3pmT3gzTkpPaTV0czFuWHdoN1BxSmJKa3pHUnlEb1ZLb0JzU1hDU05fZUVXNmpQUTBsSGQ0V3hFb0FONDJDX2gzbkFrRG9tY3RRWDdYVVJab1pjNDZnSGY2MXE0cWl1cEhyWk1rTDJYQ1BsQmdsWlJEbzREd2Y3N1pVS296RzJKUWRGUHFtOUNHSGFHM3RlWndsS3lYdWZpbmVfOVBWSmlMa1pRWUg0eVIxMlJHNTF6YkxHdXF1etIB0gJBVV95cUxOZ1ItV3U2ZUR6dGZpLWcwb1Q5MmFNSjZObUg3RS16b1c0OTJFNzFxU19QSFp1bEpZWFlJVkl6YXphZ1VDMG9UUTJPLXFybWx4dHV2SnpjS2dYY295dzEtRDRwT0plY3BSTXR4dGZuOVpVdXdoc0lIUC1NNUd3ekt2MnlsenBDSlFYWXpjWDA4RHFsNTN6VTVWQ29xTkJ3aTVDLTctWklKN1czTU12UUtfQjFtU2VEWEtMdlI0a2Y4WmJjcU9WclZFdDhJX0Z5eWU2YmVRSHczakhwVFNONTBRQ1pUbm5UTWJBejI2Wm9TMlBXempUUFM2ZS0xVDB4WWxXdnk0QlFNOVg0aWNEZFFqZk9EcnJsQkpXNVBIaHBxWnlVVHB3cUJjalphYlBfY0NQSzBKaktiMXJJSHNZaXNNcFJfWE9MRG9wTS1NUEtadUx6QQ?oc=5",
-      "domain": "The Sunday Guardian",
-      "published_at": "Tue, 18 Aug 2026 14:22:47 GMT",
+      "title": "البنك المركزي الروسي يخفض توقع نمو الناتج المحلي إلى الصفر ويتوقع تسارع التضخم",
+      "url": "https://arabic.euronews.com/2026/07/25/the-central-bank-of-russia-cuts-its-gdp-growth-forecast-to-zero-and-expects-inflation-to-a",
+      "domain": "arabic.euronews.com",
+      "published_at": "20260725T200000Z",
+      "language": "Arabic",
+      "source": "GDELT 2.1 DOC API"
+    },
+    {
+      "title": "Russia will sacrifice its civilian economy on the altar of the war effort",
+      "url": "https://www.atlanticcouncil.org/dispatches/russia-will-sacrifice-its-civilian-economy-on-the-altar-of-the-war-effort/",
+      "domain": "atlanticcouncil.org",
+      "published_at": "20260805T193000Z",
       "language": "English",
-      "source": "Google News RSS fallback; headline lead only"
+      "source": "GDELT 2.1 DOC API"
+    },
+    {
+      "title": "Russia Central Bank : End of Middle East Conflict Would Reduce Inflation Risks – NaturalNews . com",
+      "url": "https://www.naturalnews.com/2026-06-22-russia-central-bank-end-conflict-reduce-inflation.html",
+      "domain": "naturalnews.com",
+      "published_at": "20260622T154500Z",
+      "language": "English",
+      "source": "GDELT 2.1 DOC API"
+    },
+    {
+      "title": "Russia central bank gingerly cuts rates , caught between business complaints and inflation",
+      "url": "https://finance.yahoo.com/economy/policy/articles/russias-central-bank-gingerly-cuts-135955664.html",
+      "domain": "finance.yahoo.com",
+      "published_at": "20260724T143000Z",
+      "language": "English",
+      "source": "GDELT 2.1 DOC API"
+    },
+    {
+      "title": "Russian central bank cuts GDP growth forecast to zero",
+      "url": "https://www.euronews.com/2026/07/25/russian-central-bank-cuts-gdp-growth-forecast-to-zero-expects-faster-inflation",
+      "domain": "euronews.com",
+      "published_at": "20260725T143000Z",
+      "language": "English",
+      "source": "GDELT 2.1 DOC API"
+    },
+    {
+      "title": "Trump urges Iran addition to Russian sanctions bill :  What Lindsey wanted  ",
+      "url": "https://www.washingtonexaminer.com/news/white-house/4654774/trump-iran-russian-sanctions-bill-lindsey-graham/",
+      "domain": "washingtonexaminer.com",
+      "published_at": "20260719T170000Z",
+      "language": "English",
+      "source": "GDELT 2.1 DOC API"
+    },
+    {
+      "title": "EKB 2 , 25 %- on tartja a kamatot , az iráni háború miatt újabb emelés jöhet",
+      "url": "https://hu.euronews.com/business/2026/07/23/ekb-225-on-tartja-a-kamatot-az-irani-haboru-miatt-ujabb-emeles-johet",
+      "domain": "hu.euronews.com",
+      "published_at": "20260723T181500Z",
+      "language": "Hungarian",
+      "source": "GDELT 2.1 DOC API"
+    },
+    {
+      "title": "Az EKB 2 , 25 %- on tartja a kamatot , az újra fellángoló iráni háború miatt újabb emelés jöhet",
+      "url": "https://hu.euronews.com/business/2026/07/23/az-ekb-225-on-tartja-a-kamatot-az-ujra-fellangolo-irani-haboru-miatt-ujabb-emeles-johet",
+      "domain": "hu.euronews.com",
+      "published_at": "20260723T131500Z",
+      "language": "Hungarian",
+      "source": "GDELT 2.1 DOC API"
     }
   ],
   "signals": [
@@ -4659,12 +4715,12 @@
     {
       "level": "calm",
       "label": "波动率状态",
-      "detail": "VIX 15.46，20 日变化 -7.1%。"
+      "detail": "VIX 15.27，20 日变化 -8.2%。"
     },
     {
       "level": "calm",
       "label": "高收益信用利差",
-      "detail": "HY OAS 2.70%，单日变化 +0.03 个百分点。"
+      "detail": "HY OAS 2.75%，单日变化 +0.05 个百分点。"
     }
   ],
   "agent_notes": {
@@ -4777,13 +4833,8 @@
     }
   },
   "data_quality": {
-    "status": "partial",
-    "failures": [
-      {
-        "source": "world-events",
-        "error": "GDELT unavailable: HTTP Error 429: Too Many Requests; used RSS fallback"
-      }
-    ],
+    "status": "ok",
+    "failures": [],
     "disclaimer": "行情可能延迟。Yahoo Finance 为非官方接口；新闻标题只作事件线索，结论需回到原始来源。"
   }
 }
