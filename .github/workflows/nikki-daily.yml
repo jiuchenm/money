@@ -1,150 +1,30 @@
-name: Nikki daily market dashboard
+name: Deploy Nikki dashboard
 
 on:
-  schedule:
-    - cron: '35 13 * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'nikki/**'
+      - '.github/workflows/nikki-daily.yml'
   workflow_dispatch:
-    inputs:
-      report_date:
-        description: Report date in YYYY-MM-DD; defaults to Asia/Shanghai today
-        required: false
-        type: string
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
 concurrency:
-  group: nikki-daily
-  cancel-in-progress: false
+  group: nikki-pages
+  cancel-in-progress: true
 
 jobs:
-  collect:
+  deploy:
     runs-on: ubuntu-latest
-    outputs:
-      report_date: ${{ steps.date.outputs.value }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Resolve report date
-        id: date
-        env:
-          INPUT_DATE: ${{ inputs.report_date }}
-          TZ: Asia/Shanghai
-        run: echo "value=${INPUT_DATE:-$(date +%F)}" >> "$GITHUB_OUTPUT"
-      - name: Collect deterministic market data
-        run: python nikki/scripts/collect_market_data.py --date "${{ steps.date.outputs.value }}"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: nikki-raw
-          path: nikki/data/daily/${{ steps.date.outputs.value }}.json
-
-  analyze:
-    needs: collect
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        skill: [nikki-nasdaq, nikki-rates-fx, nikki-metals, nikki-energy, nikki-risk, nikki-hk-market, nikki-a-share, nikki-world-events]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: nikki-raw
-          path: nikki/data/daily
-      - run: mkdir -p nikki/analysis-parts
-      - name: Check agent availability
-        id: agent
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-          if [ -n "$OPENAI_API_KEY" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-          fi
-      - name: Run specialist agent
-        if: ${{ steps.agent.outputs.enabled == 'true' }}
-        uses: openai/codex-action@v1
-        with:
-          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-          sandbox: workspace-write
-          prompt: Use nikki/skills/${{ matrix.skill }}/SKILL.md to analyze nikki/data/daily/${{ needs.collect.outputs.report_date }}.json. Return only valid JSON. Do not edit other files.
-          output-file: nikki/analysis-parts/${{ matrix.skill }}.json
-      - uses: actions/upload-artifact@v4
-        if: ${{ hashFiles(format('nikki/analysis-parts/{0}.json', matrix.skill)) != '' }}
-        with:
-          name: analysis-${{ matrix.skill }}
-          path: nikki/analysis-parts/${{ matrix.skill }}.json
-
-  synthesize:
-    needs: [collect, analyze]
-    if: ${{ always() && needs.collect.result == 'success' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: nikki-raw
-          path: nikki/data/daily
-      - uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          pattern: analysis-*
-          path: nikki/analysis-parts
-          merge-multiple: true
-      - run: mkdir -p nikki/analysis-parts
-      - name: Check agent availability
-        id: agent
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-          if [ -n "$OPENAI_API_KEY" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-          fi
-      - name: Run synthesis agent
-        if: ${{ steps.agent.outputs.enabled == 'true' && hashFiles('nikki/analysis-parts/*.json') != '' }}
-        uses: openai/codex-action@v1
-        with:
-          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-          sandbox: workspace-write
-          prompt: Use nikki/skills/nikki-synthesis/SKILL.md to synthesize nikki/data/daily/${{ needs.collect.outputs.report_date }}.json and every JSON in nikki/analysis-parts. Return only valid JSON.
-          output-file: nikki/analysis-parts/nikki-synthesis.json
-      - uses: actions/upload-artifact@v4
-        if: ${{ hashFiles('nikki/analysis-parts/*.json') != '' }}
-        with:
-          name: nikki-analysis
-          path: nikki/analysis-parts/*.json
-
-  publish:
-    needs: [collect, synthesize]
-    if: ${{ always() && needs.collect.result == 'success' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/download-artifact@v4
-        with:
-          name: nikki-raw
-          path: nikki/data/daily
-      - uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          name: nikki-analysis
-          path: nikki/analysis-parts
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Merge analysis and publish data
-        run: |
-          python nikki/scripts/aggregate_analysis.py --date "${{ needs.collect.outputs.report_date }}"
-          python nikki/scripts/publish_snapshot.py
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -154,35 +34,6 @@ jobs:
         working-directory: nikki/site
       - run: npm run build
         working-directory: nikki/site
-      - uses: actions/upload-artifact@v4
-        with:
-          name: nikki-site-dist
-          path: nikki/site/dist
-      - name: Commit Nikki history to main
-        env:
-          REPORT_DATE: ${{ needs.collect.outputs.report_date }}
-        run: |
-          git config user.name "nikki-market-bot"
-          git config user.email "nikki-market-bot@users.noreply.github.com"
-          git add nikki/data nikki/analysis nikki/site/src/data nikki/site/public/data
-          if ! git diff --cached --quiet; then
-            git commit -m "Update Nikki market snapshot $REPORT_DATE"
-            git pull --rebase origin main
-            git push origin HEAD:main
-          fi
-
-  deploy:
-    needs: publish
-    if: ${{ github.event.repository.private == false || vars.NIKKI_PAGES_ENABLED == 'true' }}
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: nikki-site-dist
-          path: nikki/site/dist
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
