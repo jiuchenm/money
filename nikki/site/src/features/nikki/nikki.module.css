@@ -48,7 +48,7 @@
 .coreAsset:nth-last-child(-n+2) { border-bottom: 0; }
 .coreAssetHead { display: flex; justify-content: space-between; gap: 12px; min-height: 46px; }
 .coreAsset h3, .externalCard h3 { margin: 0; color: var(--ink); font-size: .92rem; letter-spacing: 0; }
-.coreAssetHead span, .externalCard > div > span { color: var(--muted); font-size: .68rem; }
+.coreAssetHead > div:first-child span, .externalCard > div:first-child > span { color: var(--muted); font-size: .68rem; }
 .coreQuote { text-align: right; }
 .coreQuote strong, .coreQuote span { display: block; }
 .coreQuote strong { color: var(--ink); font: 750 1.15rem var(--ifm-font-family-monospace); }
