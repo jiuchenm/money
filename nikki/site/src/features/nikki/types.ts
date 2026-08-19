@@ -1,0 +1,50 @@
+export type SparkPoint = {date: string; value: number};
+
+export type MarketAsset = {
+  symbol: string;
+  name: string;
+  market_date: string;
+  value: number;
+  change_1d: number;
+  change_5d: number | null;
+  change_20d: number | null;
+  drawdown_1y: number;
+  sma_50: number | null;
+  sma_200: number | null;
+  above_50d: boolean | null;
+  above_200d: boolean | null;
+  volatility_20d: number | null;
+  sparkline: SparkPoint[];
+  source: string;
+};
+
+export type MarketGroup = {
+  id: string;
+  title: string;
+  status: 'ok' | 'partial';
+  assets: Record<string, MarketAsset>;
+};
+
+export type AgentNote = {
+  headline: string;
+  stance: string | Record<string, string>;
+  forces: string[];
+  divergences: string[];
+  triggers: string[];
+  invalidations: string[];
+  confidence: string | {level: string; reason: string};
+};
+
+export type NikkiSnapshot = {
+  schema_version: number;
+  report_date: string;
+  fetched_at: string;
+  timezone: string;
+  market_phase_note: string;
+  groups: Record<string, MarketGroup>;
+  macro: Array<{series: string; label: string; market_date: string; value: number; change: number; source: string}>;
+  world_events: Array<{title: string; url?: string; domain?: string; published_at?: string; source: string}>;
+  signals: Array<{level: 'calm' | 'watch' | 'risk'; label: string; detail: string}>;
+  agent_notes: Record<string, AgentNote>;
+  data_quality: {status: string; failures: Array<{source: string; error: string}>; disclaimer: string};
+};

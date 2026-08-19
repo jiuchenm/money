@@ -1,0 +1,89 @@
+{
+  "generated_from": 1,
+  "series": {
+    "^NDX": {
+      "symbol": "^NDX",
+      "name": "Nasdaq 100",
+      "points": [
+        {
+          "report_date": "2026-08-19",
+          "market_date": "2026-08-19",
+          "value": 29368.9023,
+          "change_1d": -0.41
+        }
+      ]
+    },
+    "^VIX": {
+      "symbol": "^VIX",
+      "name": "VIX",
+      "points": [
+        {
+          "report_date": "2026-08-19",
+          "market_date": "2026-08-19",
+          "value": 15.46,
+          "change_1d": -2.4
+        }
+      ]
+    },
+    "GC=F": {
+      "symbol": "GC=F",
+      "name": "Gold",
+      "points": [
+        {
+          "report_date": "2026-08-19",
+          "market_date": "2026-08-19",
+          "value": 4517.3999,
+          "change_1d": 3.47
+        }
+      ]
+    },
+    "CL=F": {
+      "symbol": "CL=F",
+      "name": "WTI",
+      "points": [
+        {
+          "report_date": "2026-08-19",
+          "market_date": "2026-08-19",
+          "value": 84.59,
+          "change_1d": -0.41
+        }
+      ]
+    },
+    "^HSI": {
+      "symbol": "^HSI",
+      "name": "Hang Seng",
+      "points": [
+        {
+          "report_date": "2026-08-19",
+          "market_date": "2026-08-19",
+          "value": 25495.0703,
+          "change_1d": 0.09
+        }
+      ]
+    },
+    "000300.SS": {
+      "symbol": "000300.SS",
+      "name": "CSI 300",
+      "points": [
+        {
+          "report_date": "2026-08-19",
+          "market_date": "2026-08-19",
+          "value": 4588.6953,
+          "change_1d": 1.32
+        }
+      ]
+    },
+    "DX-Y.NYB": {
+      "symbol": "DX-Y.NYB",
+      "name": "Dollar Index",
+      "points": [
+        {
+          "report_date": "2026-08-19",
+          "market_date": "2026-08-19",
+          "value": 98.939,
+          "change_1d": -0.71
+        }
+      ]
+    }
+  }
+}
