@@ -5,12 +5,14 @@ import latest from './data/latest.json';
 import archive from './data/archive.json';
 import history from './data/history.json';
 import styles from './features/nikki/nikki.module.css';
+import TencentPage from './features/tencent/TencentPage';
 
-type Route = {view: 'latest' | 'trends' | 'archive' | 'day'; date?: string};
+type Route = {view: 'latest' | 'trends' | 'archive' | 'day' | 'tencent'; date?: string};
 
 function routeFromHash(): Route {
   const path = window.location.hash.replace(/^#/, '') || '/';
   if (path === '/trends') return {view: 'trends'};
+  if (path === '/tencent') return {view: 'tencent'};
   if (path === '/archive') return {view: 'archive'};
   if (path.startsWith('/archive/')) return {view: 'day', date: path.slice('/archive/'.length)};
   return {view: 'latest'};
@@ -19,7 +21,7 @@ function routeFromHash(): Route {
 function Shell({title, subtitle, children}: {title: string; subtitle: string; children: React.ReactNode}) {
   return <main className={styles.page}><header className={styles.header}><div>
     <p className={styles.eyebrow}>NIKKI · 港A市场雷达</p><h1>{title}</h1><p className={styles.subhead}>{subtitle}</p>
-  </div><nav className={styles.tabs} aria-label="Nikki 页面"><a href="#/">最新</a><a href="#/trends">趋势</a><a href="#/archive">归档</a></nav></header>{children}</main>;
+  </div><nav className={styles.tabs} aria-label="Nikki 页面"><a href="#/">最新</a><a href="#/trends">趋势</a><a href="#/tencent">腾讯</a><a href="#/archive">归档</a></nav></header>{children}</main>;
 }
 
 function Trends() {
@@ -57,6 +59,7 @@ export default function App() {
   const [route, setRoute] = useState<Route>(routeFromHash);
   useEffect(() => { const update = () => setRoute(routeFromHash()); window.addEventListener('hashchange', update); return () => window.removeEventListener('hashchange', update); }, []);
   if (route.view === 'trends') return <Trends />;
+  if (route.view === 'tencent') return <TencentPage />;
   if (route.view === 'archive') return <Archive />;
   if (route.view === 'day' && route.date) return <Day date={route.date} />;
   return <NikkiDashboard snapshot={latest as NikkiSnapshot} />;

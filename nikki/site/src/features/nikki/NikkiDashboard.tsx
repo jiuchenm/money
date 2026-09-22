@@ -146,7 +146,7 @@ export default function NikkiDashboard({snapshot, archived = false}: {snapshot: 
   return <main className={styles.page}>
     <header className={styles.header}>
       <div><p className={styles.eyebrow}>NIKKI · 港A市场雷达</p><h1>{archived ? snapshot.report_date + ' 市场档案' : '港股与A股今日总览'}</h1><p className={styles.subhead}>更新时间 {fetched} · {snapshot.data_quality.status === 'ok' ? '主要数据源正常' : '部分来源降级'}</p></div>
-      <nav className={styles.tabs} aria-label="Nikki 页面"><a href="#/">最新</a><a href="#/trends">港A趋势</a><a href="#/archive">历史</a></nav>
+      <nav className={styles.tabs} aria-label="Nikki 页面"><a href="#/">最新</a><a href="#/trends">港A趋势</a><a href="#/tencent">腾讯</a><a href="#/archive">历史</a></nav>
     </header>
     <div className={styles.phaseNote}>{friendlyText(snapshot.market_phase_note)}</div>
 

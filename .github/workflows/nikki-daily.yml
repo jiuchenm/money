@@ -30,6 +30,11 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: nikki/site/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate Tencent public research export
+        run: python nikki/research/tencent/publish_public.py --verify-public nikki/site/public/data/tencent/latest.json
       - run: npm ci
         working-directory: nikki/site
       - run: npm run build

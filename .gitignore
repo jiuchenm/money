@@ -17,3 +17,6 @@ npm-debug.log*
 
 # memsearch 缓存
 .memsearch/
+
+# Private research inputs, provider responses and personal overlays
+research-private/

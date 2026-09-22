@@ -1,0 +1,89 @@
+# 每日更新腾讯研究并发布 Pages
+
+已授权范围：每天更新腾讯研究，发布到现有 GitHub Pages。
+调度：Asia/Shanghai 每日19:10启动，使用当前 Codex 任务 heartbeat。
+发布地址：https://jiuchenm.github.io/money/#/tencent 。
+不进行证券交易，不向第三方发送个人持仓，不新建 Skill。
+
+## 1. 确认交易日和运行状态
+
+工作根目录：C:/Users/miaonathan/workspace/money。
+Python：research-private/.venv-x64/Scripts/python.exe。
+先读取 AGENTS.md、本文件及 docs-site/docs/reference/tencent-research-path-v1.md。
+用 Asia/Hong_Kong 当前日期和 XHKG 日历判断。非交易日保留上次报告日期，
+只在私有运行日志记录检查；不把周五行情改成周末日报。
+若尚未到当天18:30，不运行收盘版。特殊临时休市须取得HKEX证据后记录例外。
+检查最近发布的 report_date/prediction_id。同日已成功发布且没有关键修正时退出，
+不得为更新时间而重发或改写旧预测。失败可重试一次，仍失败则保留旧产物并报告。
+
+本地调度要求电脑开机、Codex运行、目录和GitHub登录可用；Pages阅读不需要本机在线。
+不得将这套本地研究描述为GitHub云端自主执行。GitHub Actions只构建部署已提交产物。
+
+## 2. 获取私有数据和更新研究
+
+运行 collect.py --date YYYY-MM-DD，再运行 analyze.py --date YYYY-MM-DD。
+核心源本次失败、抓取尚未收盘、缺交易日或末日冲突都必须停止发布。
+外围源失败可以降级，但在报告中标出名称、最近数据日、缺失对结论的影响。
+FRED失败不能当成零利率；WebIQ历史已返回AuthInvalidApiKey，不无意义重复调用。
+
+并行按三条研究线检索：AI模型/Agent/算力工具；腾讯/中国互联网/政策；
+全球科技硬件/财报/供应链与宏观。先检查近7天，再扩展至滚动30天。
+维护至少100个合格科技话题，不要求每天100条新消息。可以从最近私有研究池继承
+仍在窗口内的已核验事件，保留其原始时间和来源；每天重新检索新增与纠错。
+如果滚动窗口内不足100，记录缺口，不凑词、拆分同一发布或伪造热度。
+
+每条话题保留来源URL、自写摘要、发生/发布时间、精确时间未知为null、证据等级、
+与腾讯的传导、关注依据。复制的全文或长引文不得进入公共数据。
+同一事件跨来源/跨组去重，保留失败、竞争与成本信息，不按利好条数投票。
+收盘后新闻不能解释当天涨幅；美股输入只能用当时已结束时段。
+
+写入 research-private/tencent-YYYY-MM-DD 下：
+- news-ai-compute.json、news-tencent-china.json、news-global-macro.json
+- 对应检索日志、topic-exclusions.json（无排除也写空对象）
+- synthesis.json：必须含 report_date、headline、summary、confidence、news、technical、
+  macro、scenarios、watch、limitations。只写已计算数字，情景给触发/失效条件。
+- 可选 macro-supplement.json，只纳入有官方来源和真实数据日期的当前补充。
+
+三柱框架服从 Tide：时间线→合力→持续条件→腾讯质量/兑现→位置与触发→复盘。
+更新上次成熟预测的结果；窗口未成熟不判命中。模型没有击败基线时不晋升，
+不因调度而修改模型/参数寻找好看结果。每月再单独评估模型改进。
+
+## 3. 生成、审查和导出公开产物
+
+先运行 assemble.py --date YYYY-MM-DD。它保留私有完整快照和不可变版本。
+审查最终信息集、数字一致性、来源日期、去重、个人信息和转载范围。
+公开仅允许原创研究说明、来源链接、话题摘要、模型评估汇总。
+chart、完整OHLC/成交数据库、资产报价表、模型特征矩阵、源冲突数值、私有路径、
+个人持仓及密钥一律保留本地。不要因公开授权而推断获得供应商原始行情再发布权。
+
+审查完成后，生成 publication-review.json：
+- report_date 与本次交易日一致；mode 为 original-research-only。
+- reviewed_at 使用当前真实带时区时间。
+- checks 中 no_personal_positions、original_summaries、market_timing_checked、
+  no_raw_market_redistribution 全部为审查后的true，不提前自动签署。
+- sha256 为 site-data/latest.json、synthesis.json、三个news文件、
+  topic-exclusions.json 的实际文件SHA256。输入改变后必须重新审查。
+
+运行 publish_public.py --date YYYY-MM-DD，使用x64 Python。
+公开产物只在 nikki/site/public/data/tencent/latest.json 和 archive/<prediction_id>.json。
+运行标准库模式的 --verify-public、标签/数据回归测试和 npm --prefix nikki/site run build。
+查看 git diff --check 和公开JSON，禁止 git add -A。
+
+## 4. 发布并验证真正上线
+
+数据更新仅允许提交 nikki/site/public/data/tencent/latest.json 与本次新archive。
+不提交用户其他dirty修改，也不自动修改源码或顶层理论。
+先 git fetch origin。若主工作区有其他dirty修改或与远端不同步，使用本次独立
+git worktree（位于 research-private/publish-worktrees）从最新origin/main创建，
+只复制上述两份公开文件，运行公开字段校验后提交并fast-forward push HEAD:main。
+禁止force push、reset用户工作或自动解决非本任务冲突。远端前进时重新基于最新
+main应用这两份产物；若已存在更新日期/同版本则不覆盖。
+
+观察 .github/workflows/nikki-daily.yml 的当前提交部署结果，不把push成功当上线。
+读取 https://jiuchenm.github.io/money/data/tencent/latest.json，确认 report_date 和
+prediction_id 与本次一致，并核实 #/tencent 页面可用。部署失败只报告实际失败，
+不声称新日报已上线；修复不涉及重算今天的预测。
+
+私有运行日志保存开始/结束、输入hash、质量结果、commit、Actions URL、线上id。
+成功仅简报日期、关键变化和页面链接；休市/无变化不重复打扰。失败、数据过期或
+需要用户操作时说明具体原因。用户明确停止时更新该自动化状态，不删除历史。
