@@ -2,8 +2,10 @@ import {useEffect, useMemo, useState} from 'react';
 import styles from './tencent.module.css';
 import TencentPublicPage from './TencentPublicPage';
 import type {PublicSnapshot} from './TencentPublicPage';
+import IntradayPlan from './IntradayPlan';
+import type {IntradayData} from './IntradayPlan';
 
-type Bar = {date:string;close:number|null;open:number|null;high_observed:number|null;low_observed:number|null;volume:number;turnover:number;ma5?:number|null;ma10?:number|null;ma20?:number|null;partial?:boolean};
+type Bar = {date:string;close:number|null;open:number|null;high_observed:number|null;low_observed:number|null;volume:number;turnover:number|null;ma5?:number|null;ma10?:number|null;ma20?:number|null;partial?:boolean};
 type Topic = {id:string;title_zh:string;category:string;published_at:string|null;published_date?:string|null;event_date?:string|null;source_name:string;url:string;summary_zh:string;tencent_link:string;direction:string;relevance:string;verification:string;heat_basis:string;market_timing:string};
 type Scenario = {name:string;condition:string;range:string;invalidation:string};
 type TargetResult={status:string;oos_n?:number;improvement_pct?:number;coverage80?:number;folds_won?:number;fold_count?:number;current?:{lightgbm:number[];calibrated_interval:number[];empirical:number[];training_n:number;calibration_n:number}};
@@ -14,7 +16,7 @@ type Snapshot={report_date:string;generated_at:string;feature_cutoff:string;rese
  quality:{price_conflicts:unknown[];resolved_conflict_count:number;daily_count:number;full_count:number;missing_sessions:string[];unexpected_sessions:string[];volume_difference_latest:number};
  forecasts:{horizon:number;targets:Record<string,TargetResult>}[];
  analogs:{horizon:number;n:number;note:string;quantiles:Record<string,number[]>;positive_rate:number;first_up_5_lower:number;first_up_5_upper:number}[];
- chart?:{daily:Bar[];weekly:Bar[];monthly:Bar[]};
+ chart?:{daily:Bar[];weekly:Bar[];monthly:Bar[]};intraday?:IntradayData & {chart:{m30:Bar[];h120:Bar[]}};
  topics:Topic[];news_coverage:{unique_topics:number;window_start:string;window_end:string;verified:number;partial:number;note:string};
  report:{headline:string;summary:string;confidence:string;news:string[];technical:string[];macro:string[];scenarios:Scenario[];watch:string[];limitations:string[]};
  model_protocol:{feature_count:number;validation:string;limitations:string[]};};
@@ -36,9 +38,9 @@ function PriceChart({bars}:{bars:Bar[]}) {
   const x=(i:number)=>45+i*(width-65)/Math.max(1,shown.length-1);
   const y=(v:number)=>top+(high-v)/(high-low)*(bottom-top);
   const volMax=Math.max(...shown.map(b=>b.volume));
-  const selected=shown[hover??shown.length-1];
+  const selected=shown[hover==null||hover>=shown.length?shown.length-1:hover];
   const series=(key:'ma5'|'ma10'|'ma20')=>shown.map((b,i)=>b[key]!=null?(i===0||shown[i-1][key]==null?'M':'L')+x(i)+','+y(b[key]!):'').join(' ');
-  return <><div className={styles.chartInfo}>{selected.date} {selected.partial?'· 未完成周期':''}　开 {num(selected.open)}　高 {num(selected.high_observed)}　低 {num(selected.low_observed)}　收 {num(selected.close)}　成交额 {num(selected.turnover/1e8)} 亿</div>
+  return <><div className={styles.chartInfo}>{selected.date} {selected.partial?'· 未完成周期':''}　开 {num(selected.open)}　高 {num(selected.high_observed)}　低 {num(selected.low_observed)}　收 {num(selected.close)}　成交额 {selected.turnover==null?'缺少可比口径':num(selected.turnover/1e8)+' 亿'}</div>
     <svg className={styles.chart} viewBox={'0 0 '+width+' '+height} role="img" aria-label="腾讯K线、MA5、MA10、MA20和成交量" onMouseLeave={()=>setHover(null)}>
       {[0,1,2,3,4].map(i=><g key={i}><line x1="45" x2="1040" y1={top+i*(bottom-top)/4} y2={top+i*(bottom-top)/4} stroke="#283744"/><text x="0" y={top+i*(bottom-top)/4+4} fill="#b2c1cd" fontSize="11">{num(high-i*(high-low)/4,0)}</text></g>)}
       {shown.map((b,i)=>{const up=b.close!>=b.open!;return <g key={b.date} onMouseEnter={()=>setHover(i)}><line x1={x(i)} x2={x(i)} y1={y(b.high_observed!)} y2={y(b.low_observed!)} stroke={up?'#ff8d92':'#53d8ad'}/><rect x={x(i)-2.7} width="5.4" y={Math.min(y(b.close!),y(b.open!))} height={Math.max(1,Math.abs(y(b.close!)-y(b.open!)))} fill={up?'#ff8d92':'#53d8ad'}/><rect x={x(i)-3} width="6" y={307-b.volume/volMax*38} height={b.volume/volMax*38} fill={up?'#914f59':'#287e67'}/><rect x={x(i)-5} width="10" y="20" height="290" fill="transparent"/></g>})}
@@ -50,7 +52,7 @@ function PriceChart({bars}:{bars:Bar[]}) {
 
 export default function TencentPage(){
   const [payload,setData]=useState<Snapshot|PublicSnapshot|null>(null),[error,setError]=useState('');
-  const [period,setPeriod]=useState<'daily'|'weekly'|'monthly'>('daily');
+  const [period,setPeriod]=useState<'m30'|'h120'|'daily'|'weekly'|'monthly'>('m30');
   const [query,setQuery]=useState(''),[filter,setFilter]=useState('all');
   useEffect(()=>{document.title='腾讯波段观察 · Tide';const controller=new AbortController();fetch(import.meta.env.BASE_URL+'data/tencent/latest.json',{signal:controller.signal,cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error('尚未生成腾讯报告');return r.json()}).then(setData).catch(e=>{if(e.name!=='AbortError')setError(String(e.message))});return()=>{controller.abort();document.title='Nikki 市场总览'}},[]);
   const topics=useMemo(()=>payload?.topics.filter(t=>(filter==='all'||t.relevance===filter)&&[t.title_zh,t.category,t.summary_zh,t.tencent_link].join(' ').toLowerCase().includes(query.toLowerCase()))??[],[payload,filter,query]);
@@ -63,13 +65,15 @@ export default function TencentPage(){
   const stale=today>data.report_date;
   return <main className={styles.page}>
     <header className={styles.header}><div><p className={styles.eyebrow}>TIDE RESEARCH · 0700.HK</p><h1>腾讯 · 波段观察</h1><p>{data.report_date} 收盘研究版 · 消息 × 技术 × 宏观</p></div><nav><a href="#/">Nikki总览</a><a href="#/archive">市场档案</a><a href="#/tencent" aria-current="page">腾讯</a></nav></header>
-    <div className={styles.status}>{stale?'历史快照：请检查数据日期':'今日研究快照'} · 行情特征截至 {data.feature_cutoff} · 本版为实验研究，预测优势尚未确认</div>
+    <div className={styles.status}>最近交易日 {data.report_date}{stale?' · 尚无更新交易日行情':''} · 行情特征截至 {data.feature_cutoff} · 本版为实验研究，预测优势尚未确认</div>
     <section className={styles.hero}><div><span>今日预判</span><h2>{r.headline}</h2><p>{r.summary}</p><small>{r.confidence}</small></div><aside><span>腾讯港币收盘</span><strong>{num(t.close)}</strong><b className={t.change_1d>=0?styles.up:styles.down}>{pct(t.change_1d,2)}</b><p>成交额 {num(t.turnover/1e8)} 亿<br/>前20日均量的 {num(t.volume_ratio)} 倍</p></aside></section>
     <div className={styles.metrics}>{[['MA5',t.ma['5']],['MA10',t.ma['10']],['MA20',t.ma['20']],['MA60',t.ma['60']],['RSI14',t.rsi14],['ATR14',t.atr14]].map(([name,value])=><div key={name as string}><span>{name}</span><strong>{num(value as number)}</strong></div>)}</div>
-    <section className={styles.section}><div className={styles.sectionHead}><h2>先看量价处在什么位置</h2><div className={styles.controls}>{(['daily','weekly','monthly'] as const).map((p,i)=><button key={p} className={period===p?styles.active:''} onClick={()=>setPeriod(p)}>{['日线','周线','月线'][i]}</button>)}</div></div>
-      {data.chart?<PriceChart bars={data.chart[period]}/>:<p>完整行情仅保留在本地研究视图，公开产物未包含原始历史库。</p>}
+    <section className={styles.section}><div className={styles.sectionHead}><h2>先看量价处在什么位置</h2><div className={styles.controls}>{(['m30','h120','daily','weekly','monthly'] as const).map((p,i)=><button key={p} className={period===p?styles.active:''} onClick={()=>setPeriod(p)}>{['30分钟','120分钟','日线','周线','月线'][i]}</button>)}</div></div>
+      {period==='m30'||period==='h120'?(data.intraday?<PriceChart bars={data.intraday.chart[period]}/>:<p>尚无分钟行情。</p>):data.chart?<PriceChart bars={data.chart[period]}/>:<p>尚无此周期行情。</p>}
+      {(period==='m30'||period==='h120')&&data.intraday&&<p className={styles.note}>{data.intraday.quality.aggregation_policy} {data.intraday.quality.auction_note}</p>}
       <div className={styles.smallGrid}><span>5日 {pct(t.return_5d)}</span><span>20日 {pct(t.return_20d)}</span><span>距250日高点 {pct(t.drawdown_250)}</span><span>跳空 {pct(t.gap_pct)}</span></div>
     </section>
+    {data.intraday&&<IntradayPlan data={data.intraday}/>}
     <div className={styles.pillars}>{[['消息面',r.news],['技术面',r.technical],['宏观数据面',r.macro]].map(([heading,items])=><section key={heading as string}><h2>{heading}</h2><ul>{(items as string[]).map(text=><li key={text}>{text}</li>)}</ul></section>)}</div>
     <section className={styles.section}><h2>用条件判断下一段走势</h2><div className={styles.scenarios}>{r.scenarios.map(s=><article key={s.name}><h3>{s.name}</h3><strong>{s.range}</strong><p>{s.condition}</p><small>失效：{s.invalidation}</small></article>)}</div><p className={styles.note}>这些是证据支持的观察情景，不是已校准胜率或精确买卖点。价格范围必须与触发条件同时阅读。</p></section>
     <section className={styles.section}><h2>算法是否真的比历史分布更准</h2><p>LightGBM · {data.model_protocol.feature_count} 项状态输入 · 5/10/20日 · q10/q50/q90。消息面只进入本日研判，未伪造历史新闻特征。</p>
@@ -83,6 +87,6 @@ export default function TencentPage(){
       <div className={styles.topics}>{topics.map((topic,i)=><details key={topic.id}><summary><span className={styles.topicNumber}>{String(i+1).padStart(3,'0')}</span><span>{topic.title_zh}<small>{topic.category} · 发布 {(topic.published_at||topic.published_date||'日期待核验').slice(0,10)} · {topic.market_timing==='after_close'?'收盘后信息':topic.market_timing==='time_unknown'?'精确时点未知':'收盘前已知'}</small></span><em>{relevance[topic.relevance]||topic.relevance} · {direction[topic.direction]||topic.direction}</em></summary><p>{topic.summary_zh}</p><p><b>传到腾讯：</b>{topic.tencent_link}</p><p className={styles.note}>发生日：{topic.event_date||'待核验'} · 关注依据：{topic.heat_basis} · 证据：{topic.verification}</p><a href={topic.url} target="_blank" rel="noreferrer">查看来源 · {topic.source_name}</a></details>)}</div>
     </section>
     <section className={styles.section}><h2>下一次更新要验证什么</h2><ul>{r.watch.map(v=><li key={v}>{v}</li>)}</ul><details><summary>数据质量与更新记录</summary><p>三年日线 {data.quality.daily_count} 条；可比历史 {data.quality.full_count} 条；发现收盘冲突 {data.quality.price_conflicts.length} 日，其中 {data.quality.resolved_conflict_count} 日有第三源支持裁决；最后日成交量源差 {num(data.quality.volume_difference_latest,0)} 股。</p><p>生成时间 {data.generated_at}；消息研究截点 {data.research_cutoff}。当前为本次执行生成的快照，自动调度与推送状态以运行记录为准。</p></details></section>
-    <footer className={styles.footer}>Tide · 原始数据与个人持仓留在私有研究目录。每份预测保留当时的信息集，后续结果用于检验。</footer>
+    <footer className={styles.footer}>Tide · 完整图表与3手情景按用户要求公开。每份预测保留当时的信息集，后续结果用于检验。</footer>
   </main>;
 }

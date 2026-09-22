@@ -2,15 +2,16 @@
 
 The first edition joins human-reviewed news, price/volume analysis and macro
 context. It also benchmarks a small quantile LightGBM against empirical returns.
-It does not claim predictive skill or place orders. All input data and generated
-snapshots stay under the git-ignored research-private directory.
+It does not claim predictive skill or place orders. Raw input responses and audit
+snapshots stay under research-private. At the user's explicit request, the full
+research page now includes chart facts and the three-lot position scenario.
 
 Tested on Windows with CPython 3.14.5 x64; the existing ARM Python could not build
 LightGBM without a compiler. Use an x64 runtime and the pinned requirements.
 
 Daily publication is configured through the current Codex task at 19:10
 Asia/Shanghai. Follow DAILY-RUNBOOK.md. It publishes original research and source
-links to the existing Nikki Pages site; raw market data remains local. The host
+links plus daily/weekly/monthly and 30/120-minute charts to Nikki Pages. The host
 and Codex must be running. GitHub Actions builds the committed public artifact.
 
 Run from the repository root:
@@ -49,7 +50,8 @@ Open http://127.0.0.1:4174/money/#/tencent. The local server overlays the privat
 JSON at the public application's data path without copying it into site/public
 or dist. It listens only on loopback. A future production publisher must use
 explicitly cleared inputs and output fields. publish_public.py exports an allowlist
-after a dated review receipt. Keep personal positions out of every public artifact.
+after a dated full-page review receipt. Credentials, account data and local paths
+remain excluded. The user has authorized the 3-lot/428-HKD scenario on this page.
 
 Validation protocol: 5/10/20-day labels; future-dividend windows excluded; causal
 cash-dividend momentum features; h-day gaps at train/calibration/test boundaries;

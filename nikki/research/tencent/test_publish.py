@@ -22,5 +22,13 @@ class PublicationTests(unittest.TestCase):
     def test_macro_topics_do_not_satisfy_technology_minimum(self):
         d=copy.deepcopy(self.public);d['news_coverage']['technology_topics']=99
         with self.assertRaisesRegex(ValueError,'100 technology'):validate_public(d)
+    def test_explicit_full_page_restores_charts_and_position(self):
+        d=read(ROOT/'research-private/tencent-2026-09-22/site-data/latest.json')
+        if 'intraday' not in d:self.skipTest('intraday fixture absent')
+        full=export(d,dt.datetime.now(dt.timezone.utc),full=True)
+        self.assertEqual(full['intraday']['position']['lots'],3)
+        self.assertGreater(len(full['chart']['daily']),700)
+        self.assertGreater(len(full['intraday']['chart']['m30']),600)
+        self.assertTrue(full['publication']['user_authorized_full_page'])
 
 if __name__=='__main__':unittest.main()

@@ -3,7 +3,8 @@
 已授权范围：每天更新腾讯研究，发布到现有 GitHub Pages。
 调度：Asia/Shanghai 每日19:10启动，使用当前 Codex 任务 heartbeat。
 发布地址：https://jiuchenm.github.io/money/#/tencent 。
-不进行证券交易，不向第三方发送个人持仓，不新建 Skill。
+不进行证券交易，不新建 Skill。用户已明确要求在此GitHub Pages恢复完整研究页，
+包括K线和3手持仓情景；3手按100股/手计算，成本428港币用于盈亏展示。
 
 ## 1. 确认交易日和运行状态
 
@@ -22,6 +23,11 @@ Python：research-private/.venv-x64/Scripts/python.exe。
 ## 2. 获取私有数据和更新研究
 
 运行 collect.py --date YYYY-MM-DD，再运行 analyze.py --date YYYY-MM-DD。
+再运行 intraday.py --date 当前研究日期 --report-date 本次交易日 --collect-only。
+检查30m覆盖、午休与CAS，120m只用09:30–11:30和13:00–15:00完整周期。
+为新的交易日先写 research-private/tencent-intraday-当前研究日期/three-day-plan.json，
+包含 market_date、plan、levels，按当日30m/120m/日线重算触发和未来3交易日，
+不能复制9月22日的449/442/430等静态价位。随后 --analyze-only生成分钟分析。
 核心源本次失败、抓取尚未收盘、缺交易日或末日冲突都必须停止发布。
 外围源失败可以降级，但在报告中标出名称、最近数据日、缺失对结论的影响。
 FRED失败不能当成零利率；WebIQ历史已返回AuthInvalidApiKey，不无意义重复调用。
@@ -50,17 +56,21 @@ FRED失败不能当成零利率；WebIQ历史已返回AuthInvalidApiKey，不无
 
 ## 3. 生成、审查和导出公开产物
 
-先运行 assemble.py --date YYYY-MM-DD。它保留私有完整快照和不可变版本。
+先运行 assemble.py --date YYYY-MM-DD，再运行 intraday.py的 --analyze-only，
+后者把分钟图、3手情景和回测附加到快照并生成v2版本；不能在其后再assemble覆盖。
 审查最终信息集、数字一致性、来源日期、去重、个人信息和转载范围。
-公开仅允许原创研究说明、来源链接、话题摘要、模型评估汇总。
-chart、完整OHLC/成交数据库、资产报价表、模型特征矩阵、源冲突数值、私有路径、
-个人持仓及密钥一律保留本地。不要因公开授权而推断获得供应商原始行情再发布权。
+用户已要求恢复完整页面。公开图表所需OHLCV、日周月与30/120m均线、跨资产摘要、
+模型检验、话题与3手操作情景。保持来源/时点/缺失/竞价口径；不发布密钥、
+本机路径、原始HTTP响应、pickle特征矩阵或账号数据。行情事实与原创分析区分。
+胜率定义为三日期末净财富胜过始终持300股，包含未买回、踏空和双边费用。
+每边0.20%是压力假设，实际券商佣金/汇兑未知，显示小样本区间，不能报虚假高胜率。
+卖1/2/3手是累计仓位管理，买回只限已卖数量，总持仓上限3手；不自动下单。
 
 审查完成后，生成 publication-review.json：
-- report_date 与本次交易日一致；mode 为 original-research-only。
+- report_date 与本次交易日一致；mode 为 full-research-page；user_authorized_full_page为true。
 - reviewed_at 使用当前真实带时区时间。
-- checks 中 no_personal_positions、original_summaries、market_timing_checked、
-  no_raw_market_redistribution 全部为审查后的true，不提前自动签署。
+- checks 中 original_summaries、market_timing_checked、no_credentials_or_local_paths
+  全部为审查后的true，不提前自动签署。
 - sha256 为 site-data/latest.json、synthesis.json、三个news文件、
   topic-exclusions.json 的实际文件SHA256。输入改变后必须重新审查。
 
