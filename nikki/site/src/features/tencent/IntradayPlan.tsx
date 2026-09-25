@@ -7,7 +7,7 @@ export type IntradayData={market_date:string;as_of:string;forecast_sessions:stri
  state:{m30:Record<string,number>;h120:Record<string,number>;daily:Record<string,number>;sell_trigger_now:boolean};
  strategy_statistics:Stat[];protocol:Record<string,string>;fee_reference:{note:string;sources:string[]};
  plan:{headline:string;reason:string;note:string;days:{date:string;focus:string;default:string}[];actions:{name:string;trigger:string;action:string;rebuy:string;cancel:string}[]};};
-const n=(x:number,d=1)=>x.toLocaleString('zh-CN',{maximumFractionDigits:d});
+const n=(x:number|null|undefined,d=1)=>x==null?'缺失':x.toLocaleString('zh-CN',{maximumFractionDigits:d});
 const rate=(x:number)=>n(x*100)+'%';
 const signed=(x:number)=>(x>=0?'+':'')+n(x,0);
 export default function IntradayPlan({data}:{data:IntradayData}){
@@ -17,7 +17,7 @@ export default function IntradayPlan({data}:{data:IntradayData}){
  const fee=(price:number)=>{const v=price*shares;return Math.ceil(v*.001)+v*.000127+Math.max(minimum,v*commission/100)+v*slippage/100};
  const cost=fee(sellPrice)+fee(buyPrice),gain=(sellPrice-buyPrice)*shares-cost;
  return <section className={styles.section}>
-  <p className={styles.eyebrow}>未来3个港股交易日 · {data.forecast_sessions.join(' / ')}</p><h2>3手怎样减仓，再怎样买回</h2>
+  <p className={styles.eyebrow}>未来3个港股通可交易日 · {data.forecast_sessions.join(' / ')}</p><h2>3手怎样减仓，再怎样买回</h2>
   <div className={styles.status}>以{data.market_date}最后完整行情预判；不是盘中监控。获胜＝三日期末净财富超过一直持有300股，已卖未买回的踏空也计入。</div>
   <section className={styles.hero}><div><span>当前技术结论</span><h2>{data.plan.headline}</h2><p>{data.plan.reason}</p><small>可靠行动获胜概率：证据不足。下方展示真实历史频率和宽区间，不把它当未来承诺。</small></div><aside><span>{data.position.lots}手 × {data.position.shares_per_lot}股</span><strong>{data.position.shares}股</strong><p>成本 HKD {n(data.position.cost_hkd,2)}<br/>港币价格浮盈 {signed(data.position.gross_price_pnl_hkd)}<br/>未扣费用及人民币汇兑</p></aside></section>
   <div className={styles.pillars}>{[['30分钟',data.state.m30,'短线触发'],['120分钟',data.state.h120,'方向确认'],['日线',data.state.daily,'背景与风险界限']].map(([name,s,role])=><section key={name as string}><h2>{name as string}</h2><p>{role as string}</p><p>收盘 {n((s as Record<string,number>).close,2)}<br/>MA5 {n((s as Record<string,number>).ma5,2)} · MA10 {n((s as Record<string,number>).ma10,2)}<br/>MA20 {n((s as Record<string,number>).ma20,2)}</p>{(s as Record<string,number>).ema10!=null&&<p>EMA10 {n((s as Record<string,number>).ema10,2)}</p>}</section>)}</div>

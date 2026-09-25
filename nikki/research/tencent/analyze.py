@@ -17,6 +17,7 @@ import exchange_calendars as xcals
 from lightgbm import LGBMRegressor
 from sklearn.metrics import mean_pinball_loss
 from collect import ROOT, ASSETS, FRED
+from daily_sources import select_daily
 
 HORIZONS = (5, 10, 20)
 TARGETS = ('return', 'upside', 'downside', 'drawdown')
@@ -25,6 +26,7 @@ TEST_BLOCK = 63
 MAX_TRAIN = 1260
 QUANTILES = (.1, .5, .9)
 MARKET_CLOSURES = {
+    '2023-07-17':'https://www.hkex.com.hk/News/Market-Communications/2023/2307172news?sc_lang=en',
     '2023-09-01':'https://www.hkex.com.hk/News/Market-Communications/2023/2309012news?sc_lang=en',
     '2023-09-08':'https://www.hkex.com.hk/News/Market-Communications/2023/2309083news?sc_lang=en',
 }
@@ -65,17 +67,22 @@ def wealth_index(close,dividends):
 
 def normalize(raw_dir,asof):
     y,yr,_=yahoo_frame(raw_dir/'0700.HK.json')
-    rows=[line.split(',') for line in load(raw_dir/'eastmoney.json')['payload']['data']['klines']]
-    cols=['date','open','close','high','low','volume','turnover','amplitude','change_pct','change','turnover_rate']
-    em=pd.DataFrame(rows,columns=cols).set_index('date').astype(float)
-    em.index=pd.to_datetime(em.index)
     # Historical Yahoo OHLC before Tencent's 2023 in-specie distribution are on
     # a different adjustment basis. Do not treat thousands of adjustment differences
     # as independent price errors. First edition is bounded to the comparable era.
-    frame=em.loc['2023-01-05':asof].copy()
-    pair=y.join(em[['close','volume']],rsuffix='_em',how='inner').loc['2023-01-05':asof]
+    frame,source=select_daily(raw_dir,asof)
+    synthetic_closures=[]
+    for day in MARKET_CLOSURES:
+        when=pd.Timestamp(day)
+        if when in frame.index:
+            row=frame.loc[when]
+            if row.volume!=0 or row[['open','high','low','close']].nunique()!=1:
+                raise ValueError('Non-placeholder quote on documented closed session')
+            frame=frame.drop(when);synthetic_closures.append(day)
+    source['missing_turnover_dates']=[d.date().isoformat() for d in frame.index[frame.turnover.isna()]]
+    pair=y.join(frame[['close','volume']],rsuffix='_em',how='inner').loc['2023-01-05':asof]
     diffs=pair[(pair.close-pair.close_em).abs()>.011]
-    conflicts=[{'date':idx.date().isoformat(),'yahoo_close':row.close,'eastmoney_close':row.close_em} for idx,row in diffs.iterrows()]
+    conflicts=[{'date':idx.date().isoformat(),'yahoo_close':row.close,'primary_close':row.close_em,'primary_source':source['provider']} for idx,row in diffs.iterrows()]
     unmatched=sorted(set(frame.index)^set(y.loc['2023-01-05':asof].index))
     third_path=raw_dir/'tencent-crosscheck.json'
     third={r[0]:float(r[2]) for r in load(third_path)['data']['hk00700'].get('day',[])} if third_path.exists() else {}
@@ -83,7 +90,17 @@ def normalize(raw_dir,asof):
     for event in conflicts:
         value=third.get(event['date'])
         event['third_source_close']=value
-        event['resolution']='Eastmoney and Tencent match; vendor consensus, not exchange-certified' if value is not None and abs(value-event['eastmoney_close'])<.011 else 'unresolved'
+        # When Tencent is primary it cannot count as its own independent tiebreaker.
+        reference=value
+        if source['provider']=='tencent':
+            reference=None
+            for cache in sorted(raw_dir.parents[1].glob('tencent-????-??-??/raw/eastmoney.json'),reverse=True):
+                if cache.parents[1].name.removeprefix('tencent-')>=asof:continue
+                rows=load(cache).get('payload',{}).get('data',{}).get('klines',[])
+                found=[r.split(',') for r in rows if r.startswith(event['date']+',')]
+                if found:reference=float(found[0][2]);break
+        event['resolution']='Independent historical/current vendor match; not exchange-certified' if reference is not None and abs(reference-event['primary_close'])<.011 else 'unresolved'
+        event['tie_break_close']=reference
         if event['resolution']!='unresolved': resolved.append(pd.Timestamp(event['date']))
     unresolved=diffs.index.difference(pd.DatetimeIndex(resolved))
     frame['conflict']=frame.index.isin(unresolved)|frame.index.isin(unmatched)
@@ -99,18 +116,25 @@ def normalize(raw_dir,asof):
         raise ValueError('Requested date is not a Hong Kong trading session; retain prior report')
     if not expected or frame.index[-1].date()!=expected[-1].date():
         raise ValueError(f'Stale core data: actual={frame.index[-1].date()}, expected={expected[-1].date() if expected else None}')
-    if frame.iloc[-1]['conflict'] or frame.iloc[-1][['open','high','low','close','volume','turnover']].isna().any():
+    if frame.iloc[-1]['conflict'] or frame.iloc[-1][['open','high','low','close','volume']].isna().any():
         raise ValueError('Latest core observation is unresolved or incomplete')
     expected_close=cal.session_close(expected[-1])
     if pd.Timestamp.now(tz='UTC')<expected_close:
         raise ValueError('Latest market session has not closed')
     collection=load(raw_dir/'collection.json')
-    if collection.get('date')!=asof or any(e['source'] in ['0700.HK','eastmoney'] for e in collection.get('errors',[])):
+    selected_key='eastmoney' if source['provider']=='eastmoney' else 'tencent-crosscheck'
+    if collection.get('date')!=asof or any(e['source'] in ['0700.HK',selected_key] for e in collection.get('errors',[])):
         raise ValueError('Core sources failed or collection date mismatched')
-    for source in ['0700.HK','eastmoney']:
-        fetched=pd.Timestamp(load(raw_dir/(source+'.json'))['fetched_at'])
+    for source_name,fetched_at in [('0700.HK',load(raw_dir/'0700.HK.json')['fetched_at']),(selected_key,source['fetched_at'])]:
+        fetched=pd.Timestamp(fetched_at)
         if fetched<expected_close+pd.Timedelta(minutes=20):
-            raise ValueError(f'{source} was not fetched after completed session plus buffer')
+            raise ValueError(f'{source_name} was not fetched after completed session plus buffer')
+    # Fallback must independently agree with Yahoo on all recent OHLC, not only close.
+    if source['fallback_used']:
+        recent=frame.tail(5)
+        other=y.reindex(recent.index)
+        if other[['open','high','low','close']].isna().any().any() or any((recent[k]-other[k]).abs().gt(.011).any() for k in ['open','high','low','close']):
+            raise ValueError('Fallback recent OHLC disagrees with Yahoo')
     sched=cal.schedule.loc[frame.index.min():frame.index.max()]
     sessions=set(sched.index.tz_localize(None) if sched.index.tz is not None else sched.index)
     unknown=[v.date().isoformat() for v in frame.index if v not in sessions]
@@ -125,9 +149,11 @@ def normalize(raw_dir,asof):
     frame['low_observed']=frame[['low','open','close']].min(axis=1,skipna=False)
     return frame, {'price_conflicts':conflicts,'missing_sessions':missing,'unexpected_sessions':unknown,
         'unpaired_dates':[v.date().isoformat() for v in unmatched],'calendar_overrides':MARKET_CLOSURES,
+        'removed_closed_session_placeholders':synthetic_closures,
         'daily_count':int((frame.index>=pd.Timestamp(asof)-pd.DateOffset(years=3)).sum()),
         'full_count':len(frame),'downloaded_long_history_count':len(y),'resolved_conflict_count':len(resolved),
-        'training_source':'Eastmoney raw OHLCV from 2023-01-05; Yahoo + Tencent cross-check; unresolved dates quarantined',
+        'daily_source':source,'data_status':'degraded' if source['fallback_used'] or source['missing_turnover_dates'] else 'ok',
+        'training_source':source['provider']+' raw OHLCV from 2023-01-05; independent cross-check and missing-field provenance retained',
         'turnover_unit':'HKD inferred from vendor quote and price-volume consistency; not independently licensed',
         'volume_difference_latest':float(pair.volume.iloc[-1]-pair.volume_em.iloc[-1]),
         'adjustment':'Pre-2023 adjustment mismatch excluded; recent raw OHLC; dividend-crossing labels excluded',
@@ -213,6 +239,9 @@ def make_labels(df):
 def resample(df,period):
     cols={'open':'first','high_observed':'max','low_observed':'min','close':'last','volume':'sum','turnover':'sum'}
     bars=df.resample(period).agg(cols).dropna(subset=['close'])
+    # A partial sum is not the period's true turnover; preserve missingness.
+    for col in ['volume','turnover']:
+        bars[col]=df[col].resample(period).apply(lambda v:v.sum() if v.notna().all() else np.nan)
     for n in [5,10,20]: bars[f'ma{n}']=bars.close.rolling(n).mean()
     bars['date']=bars.index.strftime('%Y-%m-%d')
     bars['partial']=bars.index>df.index[-1]

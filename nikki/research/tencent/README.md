@@ -28,6 +28,16 @@ remain quarantined. Earlier than 2023-01-05 is deliberately excluded because of
 unreconciled in-specie adjustment differences. Special 2023 HKEX closure dates
 are explicit source-linked overrides; unexplained calendar gaps fail closed.
 
+Eastmoney outages now fall back to fresh unadjusted Tencent daily OHLCV, with
+recent Yahoo OHLC agreement and original date/freshness checks. Actual turnover
+is taken only from a same-day validated Tencent closing quote or a matching
+same-date historical record; missing amounts remain null, including period sums.
+Same-timestamp Yahoo nulls can be repaired from previously captured completed
+observations with snapshot hashes. No forward-filling of quote dates is allowed.
+Minute collection archives stale failed responses and the UI handles missing
+secondary-source values. Stock Connect execution holidays are separate from
+Hong Kong price sessions; the official calendar must be refreshed each year.
+
 News files must be independently reviewed before assembling:
 
 - news-ai-compute.json

@@ -1,6 +1,7 @@
 import unittest
 import pandas as pd
 from intraday import aggregate120,simulate,fee_estimate
+from trading_calendar import connect_open,next_connect_sessions
 
 class IntradayTests(unittest.TestCase):
     def frame(self,days=3):
@@ -32,5 +33,8 @@ class IntradayTests(unittest.TestCase):
     def test_stamp_duty_rounding(self):
         f=fee_estimate(451.6,100,0,0,0)
         self.assertAlmostEqual(f['official_hkd'],51.74,places=2)
+    def test_connect_closure_is_not_hk_price_session(self):
+        self.assertFalse(connect_open('2026-09-25'))
+        self.assertEqual([str(v.date()) for v in next_connect_sessions('2026-09-23')],['2026-09-24','2026-09-28','2026-09-29'])
 
 if __name__=='__main__':unittest.main()

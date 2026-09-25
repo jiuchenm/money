@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import exchange_calendars as xcals
 from collect import ROOT,fetch
+from trading_calendar import connect_open,next_connect_sessions,SOURCE as CONNECT_SOURCE
 
 HKT='Asia/Hong_Kong'
 
@@ -28,6 +29,7 @@ def save(path,value):
     path.write_text(json.dumps(safe(value),ensure_ascii=False,indent=2,allow_nan=False),encoding='utf-8')
 
 def collect_intraday(folder):
+    folder.mkdir(parents=True,exist_ok=True)
     urls={
       'yahoo30':'https://query1.finance.yahoo.com/v8/finance/chart/0700.HK?interval=30m&range=60d',
       'tencent30':'https://web.ifzq.gtimg.cn/appstock/app/kline/mkline?param=hk00700,m30,,640',
@@ -36,11 +38,21 @@ def collect_intraday(folder):
     def one(name,url):
         value={'fetched_at':dt.datetime.now(dt.timezone.utc).isoformat(),'source_url':url,'payload':json.loads(fetch(url))}
         save(folder/(name+'.json'),value);return name
+    errors=[];succeeded=[]
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
         jobs={pool.submit(one,k,v):k for k,v in urls.items()}
         for j in concurrent.futures.as_completed(jobs):
-            try:print(j.result(),'OK')
-            except Exception as e:print(jobs[j],type(e).__name__,str(e)[:180])
+            try:
+                name=j.result();succeeded.append(name);print(name,'OK')
+            except Exception as e:
+                name=jobs[j];errors.append({'source':name,'error':str(e)[:180]})
+                print(name,type(e).__name__,str(e)[:180])
+                stale=folder/(name+'.json')
+                if stale.exists():
+                    archive=folder/'prior-attempts';archive.mkdir(exist_ok=True)
+                    stale.replace(archive/(name+'-'+dt.datetime.now(dt.timezone.utc).strftime('%Y%m%d%H%M%S%f')+'.json'))
+    save(folder/'collection.json',{'fetched_at':dt.datetime.now(dt.timezone.utc).isoformat(),'succeeded':succeeded,'errors':errors})
+    if 'yahoo30' not in succeeded:raise ValueError('No fresh primary minute response')
 
 def add_indicators(frame):
     f=frame.copy();c=f.close
@@ -69,12 +81,13 @@ def aggregate120(frame):
 
 def load_bars(folder,cutoff):
     raw=json.loads((folder/'yahoo30.json').read_text(encoding='utf-8'))
+    cutoff=min(cutoff,pd.Timestamp(raw['fetched_at'])-pd.Timedelta(minutes=20))
     result=raw['payload']['chart']['result'][0]
     frame=pd.DataFrame(result['indicators']['quote'][0],index=pd.to_datetime(result['timestamp'],unit='s',utc=True).tz_convert(HKT))
     if frame.index.has_duplicates:raise ValueError('Duplicate intraday timestamps')
     hm=frame.index.strftime('%H:%M')
     continuous=((hm>='09:30')&(hm<'12:00'))|((hm>='13:00')&(hm<'16:00'))
-    cas=frame[(hm=='16:00')].dropna().copy()
+    cas=frame[(hm=='16:00')&(frame.index+pd.Timedelta(minutes=10)<=cutoff)].dropna().copy()
     bars=frame[continuous].dropna(subset=['open','high','low','close','volume']).copy()
     bars=bars[(bars.index+pd.Timedelta(minutes=30))<=cutoff]
     if ((bars.low>bars[['open','close']].min(axis=1))|(bars.high<bars[['open','close']].max(axis=1))|(bars.volume<0)).any():
@@ -84,7 +97,7 @@ def load_bars(folder,cutoff):
     # Current source window contains full sessions; fail rather than invent missing bars.
     if len(invalid_days):raise ValueError(f'Incomplete sessions: {invalid_days.to_dict()}')
     bars['turnover']=np.nan
-    conflicts=[];compared=0;volume_ratios=[]
+    conflicts=[];compared=0;volume_ratios=[];crosscheck_latest=None;current_checked=0
     em_path=folder/'eastmoney30.json'
     if em_path.exists():
         em=json.loads(em_path.read_text(encoding='utf-8'))['payload']['data']['klines']
@@ -94,6 +107,8 @@ def load_bars(folder,cutoff):
             # EM's last bar includes CAS; don't attach its volume/amount to Yahoo continuous bar.
             if start.strftime('%H:%M')=='15:30':continue
             compared+=1;ec=float(v[2]);yc=float(bars.loc[start,'close'])
+            crosscheck_latest=max(crosscheck_latest or start.date(),start.date())
+            if start.date()==bars.index[-1].date():current_checked+=1
             if abs(ec-yc)>.011:conflicts.append({'time':start.isoformat(),'yahoo_close':yc,'eastmoney_close':ec})
             bars.loc[start,'turnover']=float(v[6])
             if float(v[5])>0:volume_ratios.append(float(bars.loc[start,'volume'])/float(v[5]))
@@ -105,8 +120,11 @@ def load_bars(folder,cutoff):
       'last_bar_start':bars.index[-1].isoformat(),'last_bar_end':bars.bar_end.iloc[-1].isoformat(),
       'closing_auction_points':len(cas),'excluded_lunch_slots':int(((hm>='12:00')&(hm<'13:00')).sum()),
       'crosschecked_price_bars':compared,'price_conflicts':conflicts,
+      'crosscheck_last_market_date':str(crosscheck_latest) if crosscheck_latest else None,
+      'current_day_crosschecked_bars':current_checked,
+      'crosscheck_status':'current' if current_checked else 'historical_only' if compared else 'unavailable',
       'median_volume_ratio_yahoo_to_eastmoney':float(np.median(volume_ratios)) if volume_ratios else None,
-      'turnover_note':'30m成交额仅采用可对齐Eastmoney bar；末根含竞价口径不一致时留空，不用价格乘量冒充。',
+      'turnover_note':'30m成交额仅采用可对齐Eastmoney bar；末根含竞价口径不一致时留空，不用价格乘量冒充。'+(' 当前日没有第二源，成交额缺失。' if not current_checked else ''),
       'aggregation_policy':'120m仅09:30–11:30和13:00–15:00；上午剩30m和下午剩60m单列，不能作完整120m信号。',
       'auction_note':'Yahoo16:00单点为收盘竞价；连续交易末根收盘不一定等于日线收盘。',
       'distribution_note':'研究展示使用公开事实行情，来源与时点显式保留；不是授权数据服务。'}
@@ -132,6 +150,7 @@ def simulate(frame,daily,start_day,lots,rebuy,triggered,cost=.002):
     prior=daily[daily.index<pd.Timestamp(start_day)]
     atr=float(prior.atr14.iloc[-1]);shares=300;cash=0.;sold=0;rebought=0;pending=False;targets=[];sell_price=None
     for ordinal,(time,row) in enumerate(future.iterrows()):
+        if not connect_open(time.date(),time.time()):continue
         if sold==0 and ((not triggered and ordinal==0) or pending):
             sell_price=float(row.open);quantity=lots*100;cash+=quantity*sell_price*(1-cost);shares-=quantity;sold=lots;pending=False
             raw_targets=[sell_price-(j+1)*.5*atr for j in range(lots)] if rebuy else []
@@ -191,10 +210,13 @@ def create_analysis(folder,report_date):
     now=pd.Timestamp.now(tz='UTC');bars,h2,residual,cas,quality=load_bars(folder,now-pd.Timedelta(minutes=20))
     daily_root=ROOT/'research-private'/f'tencent-{report_date}'
     daily=pd.read_pickle(daily_root/'daily.pkl')
-    if bars.index[-1].date().isoformat()!=report_date:raise ValueError('Intraday and daily dates differ')
+    if bars.index[-1].date().isoformat()!=report_date or cas.empty or cas.index[-1].date().isoformat()!=report_date:
+        raise ValueError('Intraday/CAS and daily dates differ')
+    if abs(float(cas.close.iloc[-1])-float(daily.close.iloc[-1]))>.011:
+        raise ValueError('Closing auction and daily close disagree')
     stats,records,joined=strategy_statistics(bars,h2,daily)
     last=bars.iloc[-1];last2=h2.iloc[-1];lastd=daily.iloc[-1]
-    cal=xcals.get_calendar('XHKG');future=cal.sessions_in_range(pd.Timestamp(report_date)+pd.Timedelta(days=1),pd.Timestamp(report_date)+pd.Timedelta(days=12))[:3]
+    future=next_connect_sessions(report_date)
     levels={'resistance_1':[453.8,454.2],'resistance_2':[458.4,463.4],'support_1':[449.0,449.2],
       'support_2':[442.0,442.8],'support_3':[431.7,437.4],'daily_invalidation':430.0,
       'derivation':'当前30m最近整理低点449.2/反弹区454，午前458–463供给区；日线跳空442–442.8和MA10/20区域。静态观察位，触发前随新bar更新。'}
@@ -202,6 +224,8 @@ def create_analysis(folder,report_date):
       'position':{'lots':3,'shares_per_lot':100,'shares':300,'cost_hkd':428,'last_daily_close':float(lastd.close),
         'gross_price_pnl_hkd':float((lastd.close-428)*300),'public_authorization':'User explicitly requested full page and 3-lot position planning on 2026-09-23'},
       'quality':quality,'levels':levels,
+      'execution_calendar':{'source_url':CONNECT_SOURCE,'report_day_connect_open':connect_open(report_date),
+        'note':'港股行情日与港股通可交易日不同。2026-09-25港股开市但港股通关闭；后续三次可执行交易日按港股通日历筛选。'},
       'state':{'m30':{k:last[k] for k in ['close','ma5','ma10','ma20','ema10','ema10_slope','rsi14','prior4low','prior4high']},
         'h120':{k:last2[k] for k in ['close','ma5','ma10','ma20','ema10','ema10_slope','rsi14']},
         'daily':{'close':lastd.close,'ma5':lastd.ma5,'ma10':lastd.ma10,'ma20':lastd.ma20,'ma60':lastd.ma60,'atr14':lastd.atr14},

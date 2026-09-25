@@ -13,7 +13,7 @@ type Snapshot={report_date:string;generated_at:string;feature_cutoff:string;rese
  technical:{close:number;open:number;high:number;low:number;change_1d:number;volume:number;turnover:number;ma:Record<string,number>;atr14:number;rsi14:number;volume_ratio:number;gap_pct:number;range_position:number;return_5d:number;return_20d:number;drawdown_250:number};
  assets:{symbol:string;name:string;date:string;value:number;change_1d:number;change_5d:number;source_url:string;note:string}[];
  macro:{name:string;value:number;date:string;source_url:string;note:string}[];
- quality:{price_conflicts:unknown[];resolved_conflict_count:number;daily_count:number;full_count:number;missing_sessions:string[];unexpected_sessions:string[];volume_difference_latest:number};
+ quality:{price_conflicts:unknown[];resolved_conflict_count:number;daily_count:number;full_count:number;missing_sessions:string[];unexpected_sessions:string[];volume_difference_latest:number;daily_source?:{provider:string;fallback_used:boolean;missing_turnover_dates:string[];note?:string}};
  forecasts:{horizon:number;targets:Record<string,TargetResult>}[];
  analogs:{horizon:number;n:number;note:string;quantiles:Record<string,number[]>;positive_rate:number;first_up_5_lower:number;first_up_5_upper:number}[];
  chart?:{daily:Bar[];weekly:Bar[];monthly:Bar[]};intraday?:IntradayData & {chart:{m30:Bar[];h120:Bar[]}};
@@ -66,7 +66,8 @@ export default function TencentPage(){
   return <main className={styles.page}>
     <header className={styles.header}><div><p className={styles.eyebrow}>TIDE RESEARCH · 0700.HK</p><h1>腾讯 · 波段观察</h1><p>{data.report_date} 收盘研究版 · 消息 × 技术 × 宏观</p></div><nav><a href="#/">Nikki总览</a><a href="#/archive">市场档案</a><a href="#/tencent" aria-current="page">腾讯</a></nav></header>
     <div className={styles.status}>最近交易日 {data.report_date}{stale?' · 尚无更新交易日行情':''} · 行情特征截至 {data.feature_cutoff} · 本版为实验研究，预测优势尚未确认</div>
-    <section className={styles.hero}><div><span>今日预判</span><h2>{r.headline}</h2><p>{r.summary}</p><small>{r.confidence}</small></div><aside><span>腾讯港币收盘</span><strong>{num(t.close)}</strong><b className={t.change_1d>=0?styles.up:styles.down}>{pct(t.change_1d,2)}</b><p>成交额 {num(t.turnover/1e8)} 亿<br/>前20日均量的 {num(t.volume_ratio)} 倍</p></aside></section>
+    {data.quality.daily_source?.fallback_used&&<div className={styles.status}>行情备用源：{data.quality.daily_source.provider}，已与Yahoo核对最近OHLC。缺失成交额日期：{data.quality.daily_source.missing_turnover_dates.join('、')||'无'}。缺数保持空值，周/月成交额不冒充完整合计。</div>}
+    <section className={styles.hero}><div><span>今日预判</span><h2>{r.headline}</h2><p>{r.summary}</p><small>{r.confidence}</small></div><aside><span>腾讯港币收盘</span><strong>{num(t.close)}</strong><b className={t.change_1d>=0?styles.up:styles.down}>{pct(t.change_1d,2)}</b><p>成交额 {num(t.turnover==null?null:t.turnover/1e8)} 亿<br/>前20日均量的 {num(t.volume_ratio)} 倍</p></aside></section>
     <div className={styles.metrics}>{[['MA5',t.ma['5']],['MA10',t.ma['10']],['MA20',t.ma['20']],['MA60',t.ma['60']],['RSI14',t.rsi14],['ATR14',t.atr14]].map(([name,value])=><div key={name as string}><span>{name}</span><strong>{num(value as number)}</strong></div>)}</div>
     <section className={styles.section}><div className={styles.sectionHead}><h2>先看量价处在什么位置</h2><div className={styles.controls}>{(['m30','h120','daily','weekly','monthly'] as const).map((p,i)=><button key={p} className={period===p?styles.active:''} onClick={()=>setPeriod(p)}>{['30分钟','120分钟','日线','周线','月线'][i]}</button>)}</div></div>
       {period==='m30'||period==='h120'?(data.intraday?<PriceChart bars={data.intraday.chart[period]}/>:<p>尚无分钟行情。</p>):data.chart?<PriceChart bars={data.chart[period]}/>:<p>尚无此周期行情。</p>}
